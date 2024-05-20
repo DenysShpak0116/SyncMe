@@ -3,9 +3,9 @@ package models
 import "time"
 
 type Message struct {
-	messsageId int
-	text       string
-	sentAt     time.Time
-	userFromId int
-	userToId   int
+	MessageId  int       `db:"MessageId"`
+	Text       string    `db:"Text"`
+	SentAt     time.Time `db:"SentAt"`
+	UserFromId int       `db:"UserFromId"`
+	UserToId   int       `db:"UserToId"`
 }

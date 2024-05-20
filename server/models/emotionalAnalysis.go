@@ -1,7 +1,7 @@
 package models
 
 type EmotionalAnalysis struct {
-	emotionalAnalysisId int
-	emotionalState int
-	emotionalIcon string
+	EmotionalAnalysisId int    `db:"EmotionalAnalysisId"`
+	EmotionalState      int    `db:"EmotionalState"`
+	EmotionalIcon       string `db:"EmotionalIcon"`
 }

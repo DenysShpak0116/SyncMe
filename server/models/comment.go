@@ -3,7 +3,9 @@ package models
 import "time"
 
 type Comment struct {
-	commentId int
-	text string
-	date time.Time
+	CommentId int       `db:"CommentId"`
+	Text      string    `db:"Text"`
+	Date      time.Time `db:"Date"`
+	UserId    int       `db:"UserId"`
+	PostId    int       `db:"PostId"`
 }

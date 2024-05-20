@@ -1,7 +1,7 @@
 package models
 
 type UserGroup struct {
-	userGroupId int
-	groupId int
-	userId int
+	UserGroupId int `db:"UserGroupId"`
+	GroupId     int `db:"GroupId"`
+	UserId      int `db:"UserId"`
 }

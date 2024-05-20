@@ -3,10 +3,12 @@ package models
 import "time"
 
 type Post struct {
-	postId       int
-	textContent  string
-	imgContent   string
-	videoContent string
-	date         time.Time
-	countOfLikes int
+	PostId              int       `db:"PostId"`
+	TextContent         string    `db:"TextContent"`
+	ImgContent          string    `db:"ImgContent"`
+	VideoContent        string    `db:"VideoContent"`
+	Date                time.Time `db:"Date"`
+	CountOfLikes        int       `db:"CountOfLikes"`
+	AuthorId            int       `db:"AuthorId"`
+	EmotionalAnalysisId int       `db:"EmotionalAnalysisId"`
 }

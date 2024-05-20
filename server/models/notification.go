@@ -3,8 +3,8 @@ package models
 import "time"
 
 type Notification struct {
-	notificationId int
-	postText       string
-	postImg        string
-	date           time.Time
+	NotificationId int    `db:"NotificationId"`
+	PostText       string `db:"PostText"`
+	PostImg        string `db:"PostImg"`
+	Date           time.Time `db:"Date"`
 }

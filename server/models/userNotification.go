@@ -1,8 +1,8 @@
 package models
 
 type UserNotification struct {
-	userNotificationId int
-	notificationId int
-	userId int
-	isRead bool
+	UserNotificationId int `db:"UserNotificationId"`
+	NotificationId     int `db:"NotificationId"`
+	UserId             int `db:"UserId"`
+	IsRead             bool `db:"IsRead"`
 }

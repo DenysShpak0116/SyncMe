@@ -1,8 +1,9 @@
 package models
 
 type Group struct {
-	groupId int
-	name string
-	groupImage string
-	groupBackgroundImage string
+	GroupId              int    `db:"GroupId"`
+	Name                 string `db:"Name"`
+	GroupImage           string `db:"GroupImage"`
+	GroupBackgroundImage string `db:"GroupBackgroundImage"`
+	EmotionalAnalysisId  int    `db:"EmotionalAnalysisId"`
 }

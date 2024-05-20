@@ -1,13 +1,13 @@
 package models
 
 type User struct {
-	userId int
-	username string
-	password string
-	email string
-	firstName string
-	lastName string
-	sex string
-	country string
-	role string
+	UserId    int    `db:"UserId"`
+	Username  string `db:"Username"`
+	Password  string `db:"Password"`
+	Email     string `db:"Email"`
+	FirstName string `db:"FirstName"`
+	LastName  string `db:"LastName"`
+	Sex       string `db:"Sex"`
+	Country   string `db:"Country"`
+	Role      string `db:"Role"`
 }
