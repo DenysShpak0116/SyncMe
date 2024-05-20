@@ -9,7 +9,8 @@ import (
 var DBClient *sqlx.DB
 
 func InitializeDBConnection() {
-    db, err := sqlx.Open("mysql", "DenysShpak:ПАРОЛЬ@tcp(127.0.0.1:3306)/SyncMe?parseTime=true")
+    db, err := sqlx.Open("mysql", "SyncMeAdmin:Smad_mysql123@tcp(syncme.mysql.database.azure.com:3306)/syncme?tls=skip-verify")
+
     if err != nil {
         panic(err.Error())
     }
