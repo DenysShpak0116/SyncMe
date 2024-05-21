@@ -28,11 +28,16 @@
                 </div>
                 <div class="login-with">
                     <div class="login-with-img">
-                       <button @click="handleLogin('google')"> <img src="../assets/google.png" alt="Google"></button>
+                        <button @click="handleLogin('google')"> 
+                            <img src="../assets/google.png" alt="Google">
+                        </button>
                     </div>
                     <div class="login-with-img">
-                        <img src="../assets/facebook.png" alt="Facebook">
+                        <button @click="handleLogin('facebook')"> 
+                            <img src="../assets/facebook.png" alt="Facebook">
+                        </button>
                     </div>
+                    <!--REMOVE DISCORD-->
                     <div class="login-with-img">
                         <img src="../assets/ds.png" alt="Discord">
                     </div>

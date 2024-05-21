@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
+	"github.com/markbates/goth/providers/facebook"
 	"github.com/markbates/goth/providers/google"
 )
 
@@ -26,6 +27,10 @@ func NewAuth() {
 	googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
 	googleSecret := os.Getenv("GOOGLE_SECRET")
 
+	
+	facebookClientID := os.Getenv("FACEBOOK_KEY")
+	facebookSecret := os.Getenv("FACEBOOK_SECRET")
+
 	store := sessions.NewCookieStore([]byte(key))
 	store.MaxAge(MaxAge)
 
@@ -37,6 +42,7 @@ func NewAuth() {
 
 	goth.UseProviders(
 		google.New(googleClientID, googleSecret, "http://localhost:3000/auth/google/callback"),
+		facebook.New(facebookClientID, facebookSecret, "http://localhost:3000/auth/facebook/callback"),
 	)	
 }
 
