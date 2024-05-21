@@ -1,3 +1,5 @@
+
+
 <template>
     <div class="login">
         <div class="container">
@@ -26,7 +28,7 @@
                 </div>
                 <div class="login-with">
                     <div class="login-with-img">
-                        <img src="../assets/google.png" alt="Google">
+                       <button @click="handleLogin('google')"> <img src="../assets/google.png" alt="Google"></button>
                     </div>
                     <div class="login-with-img">
                         <img src="../assets/facebook.png" alt="Facebook">
@@ -56,7 +58,10 @@ export default {
             this.$emit('reg',this.login)
             this.$router.push({name:'main'})
         }
-    },
+    },  
+    handleLogin(provider) {
+      window.location.href = `http://localhost:3000/auth/${provider}`;
+    }
   }
 }
 </script>
