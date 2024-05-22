@@ -1,3 +1,5 @@
+// server/server.go
+
 package server
 
 import (
@@ -7,35 +9,45 @@ import (
 	"strconv"
 	"time"
 
-	_ "github.com/joho/godotenv/autoload"
-	"github.com/rs/cors" 
 	"server/internal/database"
+
+	_ "github.com/gorilla/sessions"
+	"github.com/rs/cors"
 )
 
+// Server struct to hold server configurations
 type Server struct {
 	port int
-
-	db database.Service
+	db   database.Service
 }
 
+// NewServer initializes and returns a new server instance
 func NewServer() *http.Server {
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
 	NewServer := &Server{
 		port: port,
-
-		db: database.New(),
+		db:   database.New(),
 	}
 
+	// Создаем маршруты
+	handler := NewServer.RegisterRoutes()
+
+	// Создаем обработчик CORS с нужными заголовками
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:8080"},  // Разрешенный Origin
+		AllowCredentials: true,                               // Разрешить отправку куки
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"}, // Разрешенные методы
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+	}).Handler(handler)
+
+	// Создаем сервер с обработчиком CORS
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", NewServer.port),
-		Handler:      NewServer.RegisterRoutes(),
+		Handler:      corsHandler,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
-
-	handler := cors.Default().Handler(server.Handler)
-	server.Handler = handler
 
 	return server
 }

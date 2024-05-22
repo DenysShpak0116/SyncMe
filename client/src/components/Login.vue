@@ -12,7 +12,7 @@
                 <h2 class = "login-head">
                     Account Log in
                 </h2>
-                <input type="text" class="login-input" v-model="login" placeholder="Username/Email">
+                <input type="text" class="login-input" v-model="username" placeholder="Username">
                 <input type="text" class="login-input" v-model="password" placeholder="Password">
                 <div class="login-btn">
                     <button class="login-btn-button" @click="tryLogin">
@@ -52,21 +52,33 @@ export default {
   name: 'LoginC',
   data(){
         return{
-            login:"",
+            username:"",
             password:"",
         }
   },
-  methods:{
-    tryLogin(){
-        if(this.login && this.password){
-            localStorage.setItem('loginToken',this.login)
-            this.$emit('reg',this.login)
-            this.$router.push({name:'main'})
+  methods: {
+    async login() {
+      try {
+        const response = await fetch('http://localhost:3000/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            { 
+                username: this.username, 
+                password: this.password 
+            }
+        )
+        });
+        if (response.ok) {
+          this.$router.push('/dashboard');
+        } else {
+          // Handle error
         }
-    },  
-    handleLogin(provider) {
-      window.location.href = `http://localhost:3000/auth/${provider}`;
+      } catch (error) {
+        // Handle error
+      }
     }
   }
+
 }
 </script>

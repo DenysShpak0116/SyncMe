@@ -1,11 +1,10 @@
 root = "."
-testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
   args_bin = []
   bin = "./main"
-  cmd = "make build"
+  cmd = ".\make.exe build"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []
@@ -35,11 +34,11 @@ tmp_dir = "tmp"
   watcher = "cyan"
 
 [log]
-  main_only = false
-  time = false
+  main_only = true
+  time = true
 
 [misc]
-  clean_on_exit = false
+  clean_on_exit = true
 
 [screen]
   clear_on_rebuild = false

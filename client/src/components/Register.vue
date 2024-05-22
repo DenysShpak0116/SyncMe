@@ -30,7 +30,7 @@
                     </div>
                 </div>
                 <div class="login-btn">
-                    <button class="login-btn-button" @click="tryRegister">
+                    <button class="login-btn-button" @click="register">
                         Register
                     </button>
                 </div>
@@ -57,7 +57,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 export default {
   name: 'RegisterC',
   data(){
@@ -68,47 +67,43 @@ export default {
             country:"Ukraine",
             password:"",
             passwordCheck:"",
-            passwordTypeCheck:false,
             firstName: "",
             lastName: "",
             sex: "",
 
         }
   },
-  methods:{
-  async tryRegister(){
-    if(this.email && 
-      this.verificationCode && 
-      this.username && 
-      this.country && 
-      this.password && 
-      this.passwordCheck){
-      if(this.password != this.passwordCheck){
-        alert('Passwords do not match')
+  methods: {
+    async register() {
+      if (password != passwordCheck) {
+        alert("Passwords do not match")
         return
       }
-
       try {
-        const response = await axios.post('http://localhost:3000/register', {
-          email: this.email,
-          username: this.username,
-          country: this.country,
-          password: this.password,
-          firstName: "",
-          lastName: "",
-          sex: "",
+        const response = await fetch('http://localhost:3000/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            { 
+                username: this.username, 
+                password: this.password, 
+                email: this.email,
+                country: this.country,
+                firstName: this.firstName,
+                lastName: this.lastName,
+                sex: this.sex
+            }
+        )
         });
-
-        console.log(response.data);
-        // Handle success, e.g., show a success message to the user
+        if (response.ok) {
+          this.$router.push('/login');
+        } else {
+            alert(  "Error: " + response.status + " " + response.statusText);
+        }
       } catch (error) {
-        console.error(error);
-        // Handle error, e.g., show an error message to the user
+        console.error('Error:', error);
       }
-    } else {
-      // Handle incomplete form data, e.g., show a message to the user
     }
-  }
   }
 }
 </script>

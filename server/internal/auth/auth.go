@@ -14,7 +14,7 @@ import (
 
 const (
 	key    = "SyncMeKey123"
-	MaxAge = 86400 * 30
+	MaxAge = 0
 	IsProd = false
 	SessionName = "my-app-session" 
 )

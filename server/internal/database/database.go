@@ -9,9 +9,10 @@ import (
 	"strconv"
 	"time"
 
+	"server/models"
+
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/joho/godotenv/autoload"
-	"server/models"
 )
 
 // Service represents a service that interacts with a database.
@@ -19,6 +20,9 @@ type Service interface {
 	Health() map[string]string
 	Close() error
 	AddUser(user models.User) error
+	GetAllUsers() ([]models.User, error)
+	GetUserByUsername(login string) (*models.User, error)
+	GetUserById(id int) (*models.User, error)
 }
 
 type service struct {
@@ -35,7 +39,7 @@ var (
 )
 
 func Instance() Service {
-    return dbInstance
+	return dbInstance
 }
 
 func New() Service {
@@ -46,13 +50,13 @@ func New() Service {
 
 	// Opening a driver typically will not attempt to connect to the database.
 	db, err := sql.Open(
-		"mysql", 
+		"mysql",
 		fmt.Sprintf(
-			"%s:%s@tcp(%s:%s)/%s", 
-			username, 
-			password, 
-			host, 
-			port, 
+			"%s:%s@tcp(%s:%s)/%s",
+			username,
+			password,
+			host,
+			port,
 			dbname,
 		),
 	)
@@ -68,6 +72,8 @@ func New() Service {
 	dbInstance = &service{
 		db: db,
 	}
+
+	log.Println("Connected")
 	return dbInstance
 }
 
@@ -131,7 +137,7 @@ func (s *service) Close() error {
 }
 
 func (s *service) AddUser(user models.User) error {
-	query := `INSERT INTO user (username, password, email, first_name, last_name, sex, country, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO user (username, password, email, firstname, lastname, sex, country, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -141,4 +147,56 @@ func (s *service) AddUser(user models.User) error {
 	}
 
 	return nil
+}
+
+func (s *service) GetAllUsers() ([]models.User, error) {
+	query := `SELECT * FROM user`
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve users: %v", err)
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		var user models.User
+		err := rows.Scan(&user.UserId, &user.Username, &user.Password, &user.Email, &user.FirstName, &user.LastName, &user.Sex, &user.Country, &user.Role)
+		if err != nil {
+			return nil, fmt.Errorf("could not scan user: %v", err)
+		}
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over users: %v", err)
+	}
+
+	return users, nil
+}
+
+func (s *service) GetUserByUsername(username string) (*models.User, error) {
+	query := `SELECT * FROM user WHERE Username = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	row := s.db.QueryRowContext(ctx, query, username)
+	var user models.User
+	err := row.Scan(&user.UserId, &user.Username, &user.Password, &user.Email, &user.FirstName, &user.LastName, &user.Sex, &user.Country, &user.Role)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+func (s *service) GetUserById(id int) (*models.User, error) {
+	query := `SELECT * FROM user WHERE UserId = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	row := s.db.QueryRowContext(ctx, query, id)
+	var user models.User
+	err := row.Scan(&user.UserId, &user.Username, &user.Password, &user.Email, &user.FirstName, &user.LastName, &user.Sex, &user.Country, &user.Role)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
