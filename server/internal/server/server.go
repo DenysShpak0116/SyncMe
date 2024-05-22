@@ -8,7 +8,7 @@ import (
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
-
+	"github.com/rs/cors" 
 	"server/internal/database"
 )
 
@@ -33,6 +33,9 @@ func NewServer() *http.Server {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
+
+	handler := cors.Default().Handler(server.Handler)
+	server.Handler = handler
 
 	return server
 }

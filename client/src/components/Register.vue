@@ -57,30 +57,58 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
   name: 'RegisterC',
   data(){
         return{
             email:"",
-            verificationCode:"",
+            verificationCode:"1234",
             username:"",
             country:"Ukraine",
             password:"",
             passwordCheck:"",
-            passwordTypeCheck:false
+            passwordTypeCheck:false,
+            firstName: "",
+            lastName: "",
+            sex: "",
+
         }
   },
   methods:{
-    tryRegister(){
-        if(this.email && this.verificationCode && this.username && this.country && this.password && this.passwordCheck){
-            if(this.password == this.passwordCheck){
-                localStorage.setItem('loginToken',this.username)
-                this.$emit('reg',this.username)
-                this.$router.push({name:'main'})
-            }
-        }
-        
-    },
+  async tryRegister(){
+    if(this.email && 
+      this.verificationCode && 
+      this.username && 
+      this.country && 
+      this.password && 
+      this.passwordCheck){
+      if(this.password != this.passwordCheck){
+        alert('Passwords do not match')
+        return
+      }
+
+      try {
+        const response = await axios.post('http://localhost:3000/register', {
+          email: this.email,
+          username: this.username,
+          country: this.country,
+          password: this.password,
+          firstName: "",
+          lastName: "",
+          sex: "",
+        });
+
+        console.log(response.data);
+        // Handle success, e.g., show a success message to the user
+      } catch (error) {
+        console.error(error);
+        // Handle error, e.g., show an error message to the user
+      }
+    } else {
+      // Handle incomplete form data, e.g., show a message to the user
+    }
+  }
   }
 }
 </script>

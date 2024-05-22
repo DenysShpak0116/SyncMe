@@ -1,3 +1,42 @@
+<script>
+export default {
+  name: 'HeaderC',
+  data() {
+    return {
+      loggedIn: false,
+      user: null,
+    };
+  },
+  created() {
+    this.checkSession();
+  },
+  methods: {
+    async checkSession() {
+      const response = await fetch('http://localhost:3000/session');
+      const data = await response.json();
+      this.loggedIn = data.logged_in;
+      this.username = data.username;
+    },
+    logout() {
+        fetch(`http://localhost:3000/logout/${this.logged}`, {
+            method: 'GET',
+            credentials: 'same-origin'
+        }).then(() => {
+            localStorage.removeItem('loginToken')
+            this.$emit('logout')
+            this.$router.push({ name: 'login' })
+        }).catch(err => {
+            console.error('Logout failed', err)
+        })
+    }
+},
+    // props: {
+    //     logged: {
+    //         default: localStorage.getItem('loginToken')
+    //     }
+    // }
+}
+</script>
 <template>
     <header class = "header">
         <div class="container">
@@ -32,7 +71,7 @@
                         </div>
                     </router-link>
                     <router-link
-                        v-if="!logged"
+                        v-if="!loggedIn"
                         :to="{name:'login'}">
                         <div class="header-login">
                             <svg class="header-login-svg" viewBox="0 0 168 64" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -48,7 +87,7 @@
                         </div>
                     </router-link>
                     <router-link
-                        v-if="logged"
+                        v-if="loggedIn"
                         :to="{name:'chat'}">
                         <div class="header-login header-login1">
                             <svg class="header-login-svg" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -63,7 +102,7 @@
                         </div>
                     </router-link>
                     <router-link
-                        v-if="logged"
+                        v-if="loggedIn"
                         :to="{name:'main'}">
                         <div class="header-login header-login1">
                             <svg  class="header-login-svg" viewBox="0 0 56 55" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -77,32 +116,10 @@
                             </svg>
                         </div>
                     </router-link>
-                    <button v-if="logged" @click = "logout">logout from {{ logged }}</button>
+                    <button v-if="loggedIn" @click="logout">logout from {{ user.username }}</button>
                 </div>
                 
             </div>
         </div>
     </header>
   </template> 
-<script>
-export default {
-  name: 'HeaderC',
-  data(){
-        return{
-            headerSearch:"",
-        }
-  },
-  methods:{
-    logout(){
-        localStorage.removeItem('loginToken')
-        this.$emit('logout')
-        this.$router.push({name:'login'})
-    }
-  },
-  props:{
-        logged:{
-            default:localStorage.getItem('loginToken')
-        }
-    }
-}
-</script>

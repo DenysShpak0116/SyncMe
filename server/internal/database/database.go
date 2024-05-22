@@ -11,17 +11,14 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/joho/godotenv/autoload"
+	"server/models"
 )
 
 // Service represents a service that interacts with a database.
 type Service interface {
-	// Health returns a map of health status information.
-	// The keys and values in the map are service-specific.
 	Health() map[string]string
-
-	// Close terminates the database connection.
-	// It returns an error if the connection cannot be closed.
 	Close() error
+	AddUser(user models.User) error
 }
 
 type service struct {
@@ -36,6 +33,10 @@ var (
 	host       = os.Getenv("DB_HOST")
 	dbInstance *service
 )
+
+func Instance() Service {
+    return dbInstance
+}
 
 func New() Service {
 	// Reuse Connection
@@ -127,4 +128,17 @@ func (s *service) Health() map[string]string {
 func (s *service) Close() error {
 	log.Printf("Disconnected from database: %s", dbname)
 	return s.db.Close()
+}
+
+func (s *service) AddUser(user models.User) error {
+	query := `INSERT INTO user (username, password, email, first_name, last_name, sex, country, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := s.db.ExecContext(ctx, query, user.Username, user.Password, user.Email, user.FirstName, user.LastName, user.Sex, user.Country, user.Role)
+	if err != nil {
+		return fmt.Errorf("could not insert user: %v", err)
+	}
+
+	return nil
 }

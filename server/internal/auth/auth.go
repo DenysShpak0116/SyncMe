@@ -16,7 +16,10 @@ const (
 	key    = "SyncMeKey123"
 	MaxAge = 86400 * 30
 	IsProd = false
+	SessionName = "my-app-session" 
 )
+
+var Store *sessions.CookieStore
 
 func NewAuth() {
 	err := godotenv.Load()
@@ -27,22 +30,20 @@ func NewAuth() {
 	googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
 	googleSecret := os.Getenv("GOOGLE_SECRET")
 
-	
 	facebookClientID := os.Getenv("FACEBOOK_KEY")
 	facebookSecret := os.Getenv("FACEBOOK_SECRET")
 
-	store := sessions.NewCookieStore([]byte(key))
-	store.MaxAge(MaxAge)
+	Store = sessions.NewCookieStore([]byte(key))
+	Store.MaxAge(MaxAge)
 
-	store.Options.Path = "/"
-	store.Options.HttpOnly = true
-	store.Options.Secure = IsProd
+	Store.Options.Path = "/"
+	Store.Options.HttpOnly = true
+	Store.Options.Secure = IsProd
 
-	gothic.Store = store
+	gothic.Store = Store
 
 	goth.UseProviders(
 		google.New(googleClientID, googleSecret, "http://localhost:3000/auth/google/callback"),
 		facebook.New(facebookClientID, facebookSecret, "http://localhost:3000/auth/facebook/callback"),
-	)	
+	)
 }
-

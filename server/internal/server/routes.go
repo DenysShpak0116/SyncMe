@@ -1,31 +1,39 @@
 package server
 
 import (
-	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
+	"server/internal/auth"
+	"server/routes"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/markbates/goth/gothic"
+	"github.com/rs/cors"
+	 _ "github.com/gorilla/sessions"
 )
-
 func (s *Server) RegisterRoutes() http.Handler {
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
+    r := chi.NewRouter()
+    r.Use(middleware.Logger)
 
-	r.Get("/", s.HelloWorldHandler)
+    // CORS middleware for all routes
+    r.Use(cors.New(cors.Options{
+        AllowedOrigins:   []string{"http://localhost:8080"},
+        AllowCredentials: true,
+    }).Handler)
 
-	r.Get("/health", s.healthHandler)
+    r.Get("/", s.HelloWorldHandler)
+    r.Get("/health", s.healthHandler)
 
-	r.Get("/auth/{provider}/callback", s.getAuthCallbackFuntion)
-	r.Get("/auth/{provider}", s.getAuthFunction)
-	r.Get("/logout/{provider}", s.logoutFunction)
+    r.Post("/session", s.userSessionHandler)
 
-	return r
+    routes.RegisterAuthRoutes(r)
+
+    return r
 }
+
+
 
 func (s *Server) HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
 	resp := make(map[string]string)
@@ -45,42 +53,19 @@ func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
 	jsonResp, _ := json.Marshal(s.db.Health())
 	_, _ = w.Write(jsonResp)
 }
+func (s *Server) userSessionHandler(w http.ResponseWriter, r *http.Request) {
+	session, _ := auth.Store.Get(r, auth.SessionName)
 
-func (s *Server) getAuthCallbackFuntion(w http.ResponseWriter, r *http.Request) {
-	provider := chi.URLParam(r, "provider")
-
-	r = r.WithContext(context.WithValue(context.Background(), "provider", provider));
-
-	user, err := gothic.CompleteUserAuth(w, r)
-	if err != nil {
-		fmt.Fprintln(w, err)
-		return
-	}
-
-	fmt.Println(user)
-
-	http.Redirect(w, r, "http://localhost:8080", http.StatusSeeOther)
-}
-
-func (s *Server) beginAuthProviderCallback(w http.ResponseWriter, r *http.Request) {
-	provider := chi.URLParam(r, "provider")
-	r = r.WithContext(context.WithValue(context.Background(), "provider", provider));
-	gothic.BeginAuthHandler(w, r)
-}
-
-func (s *Server) getAuthFunction(res http.ResponseWriter, req *http.Request) {
-	provider := chi.URLParam(req, "provider")
-	req = req.WithContext(context.WithValue(context.Background(), "provider", provider))
-	if gothUser, err := gothic.CompleteUserAuth(res, req); err == nil {
-		fmt.Println(gothUser)
-		http.Redirect(res, req, "http://localhost:8080", http.StatusSeeOther)
+	if username, ok := session.Values["username"]; ok {
+		// Пользователь вошел в систему
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"logged_in": true,
+			"username":      username,
+		})
 	} else {
-		gothic.BeginAuthHandler(res, req)
+		// Пользователь не вошел в систему
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"logged_in": false,
+		})
 	}
-}
-
-func(s *Server) logoutFunction(res http.ResponseWriter, req *http.Request) {
-	gothic.Logout(res, req)
-	res.Header().Set("Location", "/")
-	res.WriteHeader(http.StatusTemporaryRedirect)
 }
