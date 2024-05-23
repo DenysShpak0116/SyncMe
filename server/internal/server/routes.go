@@ -22,7 +22,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Get("/session", s.userSessionHandler)
 
 	routes.RegisterAuthRoutes(r)
-
+	routes.RegisterGroupRoutes(r)
 	return r
 }
 

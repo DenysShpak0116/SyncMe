@@ -24,6 +24,10 @@ type Service interface {
 	GetUserByUsername(login string) (*models.User, error)
 	GetUserById(id int) (*models.User, error)
 	GetUserByEmail(email string) (*models.User, error)
+
+	AddGroup(group models.Group) (int, error)
+
+	AddUserGroup(userId int, groupId int) error
 }
 
 type service struct {
@@ -209,11 +213,11 @@ func (s *service) GetUserByEmail(email string) (*models.User, error) {
 	row := s.db.QueryRowContext(ctx, query, email)
 	var user models.User
 	err := row.Scan(
-		&user.UserId, 
-		&user.Username, 
-		&user.Password, 
-		&user.Email, 
-		&user.FirstName, 
+		&user.UserId,
+		&user.Username,
+		&user.Password,
+		&user.Email,
+		&user.FirstName,
 		&user.LastName,
 		&user.Country,
 		&user.Sex,
@@ -223,4 +227,32 @@ func (s *service) GetUserByEmail(email string) (*models.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (s *service) AddGroup(group models.Group) (int, error) {
+	query := "INSERT INTO `group` (Name, GroupImage, GroupBackgroundImage) VALUES (?, ?, ?)"
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result, err := s.db.ExecContext(ctx, query, group.Name, group.GroupImage, group.GroupBackgroundImage)
+	if err != nil {
+		return -1, fmt.Errorf("could not insert group: %v", err.Error())
+	}
+	groupId, err := result.LastInsertId()
+	if err != nil {
+		return -1, fmt.Errorf("could not retrieve group id: %v", err.Error())
+	}
+	return int(groupId), nil
+}
+
+func (s *service) AddUserGroup(userId int, groupId int) error {
+	query := "INSERT INTO usergroup (UserId, GroupId) VALUES (?, ?)"
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := s.db.ExecContext(ctx, query, userId, groupId)
+	if err != nil {
+		return fmt.Errorf("could not insert user group: %v", err.Error())
+	}
+	return nil
 }

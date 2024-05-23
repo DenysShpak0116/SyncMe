@@ -12,6 +12,8 @@ require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/go-chi/render v1.0.3 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
+	github.com/n0madic/twitter-scraper v0.0.0-20231104223941-296710769dd8 // indirect
+	golang.org/x/net v0.25.0 // indirect
 )
 
 require (
