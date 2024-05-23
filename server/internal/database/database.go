@@ -23,6 +23,7 @@ type Service interface {
 	GetAllUsers() ([]models.User, error)
 	GetUserByUsername(login string) (*models.User, error)
 	GetUserById(id int) (*models.User, error)
+	GetUserByEmail(email string) (*models.User, error)
 }
 
 type service struct {
@@ -195,6 +196,29 @@ func (s *service) GetUserById(id int) (*models.User, error) {
 	row := s.db.QueryRowContext(ctx, query, id)
 	var user models.User
 	err := row.Scan(&user.UserId, &user.Username, &user.Password, &user.Email, &user.FirstName, &user.LastName, &user.Sex, &user.Country, &user.Role)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (s *service) GetUserByEmail(email string) (*models.User, error) {
+	query := `SELECT * FROM user WHERE Email = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	row := s.db.QueryRowContext(ctx, query, email)
+	var user models.User
+	err := row.Scan(
+		&user.UserId, 
+		&user.Username, 
+		&user.Password, 
+		&user.Email, 
+		&user.FirstName, 
+		&user.LastName,
+		&user.Country,
+		&user.Sex,
+		&user.Role,
+	)
 	if err != nil {
 		return nil, err
 	}

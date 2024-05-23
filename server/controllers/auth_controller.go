@@ -28,12 +28,107 @@ func GetAuthCallbackFuntion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, _ := auth.Store.Get(r, auth.SessionName)
-	session.Values["username"] = user.NickName
-	session.Values["provider"] = provider
-	session.Values["logged_in"] = true
-	session.Save(r, w)
+	dbService := database.Instance()
 
+	users, err := dbService.GetAllUsers()
+	if err != nil {
+		http.Error(w, "Cannot get all users: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	var userExists bool = false
+	for _, u := range users {
+		if u.Email == user.Email {
+			userExists = true
+			break
+		}
+	}
+
+	if userExists {
+		userToLogin, err := dbService.GetUserByEmail(user.Email)
+		if err != nil {
+			http.Error(w, "Cannot get user by email: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"sub": userToLogin.UserId,
+			"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+		})
+
+		tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+		if err != nil {
+			http.Error(w, "Cannot sign token: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "jwt-token",
+			Value:    tokenString,
+			Expires:  time.Now().Add(time.Hour * 24 * 30),
+			HttpOnly: false,
+			Path:     "/",
+			Domain:   "localhost",
+			Secure:   false,
+		})
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		response := map[string]string{"token": tokenString}
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			http.Error(w, "Cannot encode response: "+err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	var newUser *models.User
+	err = dbService.AddUser(models.User{
+		Username:  user.NickName,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Country:   user.Location,
+		Sex:       "Other",
+		Role:      "user",
+	})
+	if err != nil {
+		http.Error(w, "Cannot add user: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	newUser, err = dbService.GetUserByEmail(user.Email)
+	if err != nil {
+		http.Error(w, "Cannot get user by email: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": newUser.UserId,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+	})
+
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		http.Error(w, "Cannot sign token: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "jwt-token",
+		Value:    tokenString,
+		Expires:  time.Now().Add(time.Hour * 24 * 30),
+		HttpOnly: false,
+		Path:     "/",
+		Domain:   "localhost",
+		Secure:   false,
+	})
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	response := map[string]string{"token": tokenString}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Cannot encode response: "+err.Error(), http.StatusInternalServerError)
+	}
+	if err != nil {
+		http.Error(w, "Cannot add user: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 	fmt.Println(user)
 
 	http.Redirect(w, r, "http://localhost:8080/#/", http.StatusSeeOther)
@@ -52,20 +147,44 @@ func GetAuthFunction(res http.ResponseWriter, req *http.Request) {
 
 func LogoutFunction(res http.ResponseWriter, req *http.Request) {
 	provider := chi.URLParam(req, "provider")
+	fmt.Printf("Logging out provider: %s\n", provider)
+
 	if provider == "google" || provider == "facebook" {
-		gothic.Logout(res, req)
+		err := gothic.Logout(res, req)
+		if err != nil {
+			fmt.Printf("Error logging out from provider: %s\n", err)
+		} else {
+			fmt.Println("Logged out from API provider")
+		}
 	} else {
 		fmt.Println("Logged out from non-api account")
 	}
 
-	session, _ := auth.Store.Get(req, auth.SessionName)
-	session.Options.MaxAge = -1
-	session.Save(req, res)
+	// Invalidate the JWT token cookie
+	cookie := http.Cookie{
+		Name:     "jwt-token",
+		Value:    "",
+		Expires:  time.Unix(0, 0), // Set to Unix epoch time
+		MaxAge:   -1,              // MaxAge<0 means delete cookie now
+		HttpOnly: false,
+		Path:     "/",
+		Domain:   "localhost",
+		Secure:   false,
+	}
+	http.SetCookie(res, &cookie)
+	fmt.Println("JWT cookie invalidated")
 
-	http.Redirect(res, req, "http://localhost:8080", http.StatusSeeOther)
+	// Verify cookie is set in the response header
+	receivedCookie, err := req.Cookie("jwt-token")
+	if err != nil {
+		fmt.Printf("Cookie not set: %s\n", err)
+	} else {
+		fmt.Printf("Cookie after invalidation: %v\n", receivedCookie)
+	}
 
-	res.Header().Set("Location", "/")
-	res.WriteHeader(http.StatusTemporaryRedirect)
+	// Redirect to home page after logout
+	http.Redirect(res, req, "http://localhost:8080/#/", http.StatusSeeOther)
+	fmt.Println("Redirected to home page")
 }
 
 func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -157,10 +276,10 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		Name:     "jwt-token",
 		Value:    tokenString,
 		Expires:  time.Now().Add(time.Hour * 24 * 30),
-		HttpOnly: true,
+		HttpOnly: false,
 		Path:     "/",
 		Domain:   "localhost",
-		Secure:   false, 
+		Secure:   false,
 	})
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -175,9 +294,10 @@ func Validate(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	user := r.Context().Value("user").(*models.User)
-
+	cookie, _ := r.Cookie("jwt-token")
 	response := map[string]interface{}{
 		"message": "Token is valid",
+		"Token":   cookie.Value,
 		"user":    user,
 	}
 
