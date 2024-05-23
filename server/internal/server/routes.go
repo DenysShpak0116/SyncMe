@@ -23,6 +23,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	routes.RegisterAuthRoutes(r)
 	routes.RegisterGroupRoutes(r)
+	routes.RegisterAuthorRoutes(r)
 	return r
 }
 

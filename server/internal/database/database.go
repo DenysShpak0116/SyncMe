@@ -28,6 +28,8 @@ type Service interface {
 	AddGroup(group models.Group) (int, error)
 
 	AddUserGroup(userId int, groupId int) error
+
+	AddAuthor(author models.Author) (int, error)
 }
 
 type service struct {
@@ -255,4 +257,30 @@ func (s *service) AddUserGroup(userId int, groupId int) error {
 		return fmt.Errorf("could not insert user group: %v", err.Error())
 	}
 	return nil
+}
+
+func (s *service) AddAuthor(author models.Author) (int, error) {
+	query := `INSERT INTO author (Name, Username, SocialMedia, AuthorImage, 
+		AuthorBackgroundImage, GroupId) VALUES (?, ?, ?, ?, ?, ?)`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result, err := s.db.ExecContext(
+		ctx, 
+		query, 
+		author.Name, 
+		author.Username,
+		author.SocialMedia,
+		author.AuthorImage,
+		author.AuthorBackgroundImage,
+		author.GroupId,
+	)
+	if err != nil {
+		return -1, fmt.Errorf("could not insert author: %v", err.Error())
+	}
+	authorId, err := result.LastInsertId()
+	if err != nil {
+		return -1, fmt.Errorf("could not retrieve author id: %v", err.Error())
+	}
+	return int(authorId), nil
 }

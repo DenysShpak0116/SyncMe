@@ -13,10 +13,10 @@ import (
 )
 
 const (
-	key    = "SyncMeKey123"
-	MaxAge = 0
-	IsProd = false
-	SessionName = "my-app-session" 
+	key         = "SyncMeKey123"
+	MaxAge      = 0
+	IsProd      = false
+	SessionName = "my-app-session"
 )
 
 var Store *sessions.CookieStore
@@ -24,7 +24,7 @@ var Store *sessions.CookieStore
 func NewAuth() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		log.Fatalf("Error loading .env file ", err.Error())
 	}
 
 	googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
