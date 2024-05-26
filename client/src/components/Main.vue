@@ -31,7 +31,7 @@ export default {
     async validateToken() {
       try {
         const response = await fetch('http://localhost:3000/validate', {
-          method: 'GET',
+          method: 'POST',
           credentials: 'include',
         });
 

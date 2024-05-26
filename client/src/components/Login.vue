@@ -28,12 +28,12 @@
                 </div>
                 <div class="login-with">
                     <div class="login-with-img">
-                        <button @click="handleLogin('google')"> 
+                        <button @click="apiLogin('google')"> 
                             <img src="../assets/google.png" alt="Google">
                         </button>
                     </div>
                     <div class="login-with-img">
-                        <button @click="handleLogin('facebook')"> 
+                        <button @click="apiLogin('facebook')"> 
                             <img src="../assets/facebook.png" alt="Facebook">
                         </button>
                     </div>
@@ -72,15 +72,17 @@ export default {
         let res = await response.json();
         if(res.token){
             localStorage.setItem("loginToken", res.token);
-            localStorage.setItem("name", this.username);
             this.$emit('reg',res.token)
             this.$router.push({name:'main'})
         }
       } catch (error) {
         // Handle error
       }
+    },
+    async apiLogin(name) {
+        window.location.href = `http://localhost:3000/auth/${name}`
+        this.$router.push({name:'main'})
     }
   }
-
 }
 </script>

@@ -5,13 +5,14 @@ export default {
     return {
         username: null,
         headerSearch:"",
-        loggedIn:this.logged
+        loggedIn:this.logged,
+        
     };
   },
   props: {
     logged: {
-            default: localStorage.getItem('loginToken')
-        }
+        default: localStorage.getItem('loginToken')
+    }
     },
   methods: {
     logout() {
@@ -102,7 +103,7 @@ export default {
                             </svg>
                         </div>
                     </router-link>
-                    <button v-if="this.logged" @click="logout">logout from {{ this.logged }}</button>
+                    <button v-if="this.logged" @click="logout">logout from {{ this.name }}</button>
                 </div>
                 
             </div>
