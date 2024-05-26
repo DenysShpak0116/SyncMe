@@ -2,6 +2,7 @@ package routes
 
 import (
 	"server/controllers"
+
 	"github.com/go-chi/chi/v5"
 )
 

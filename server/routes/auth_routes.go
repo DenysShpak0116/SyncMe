@@ -2,7 +2,8 @@ package routes
 
 import (
 	"server/controllers"
-	"server/middleware" 
+	"server/middleware"
+
 	"github.com/go-chi/chi/v5"
 )
 
@@ -14,6 +15,6 @@ func RegisterAuthRoutes(r chi.Router) {
 		r.Post("/login", controllers.LoginUserHandler)
 		r.Get("/logout/{provider}", controllers.LogoutFunction)
 	})
-	
+
 	r.Get("/validate", middleware.RequireAuth(controllers.Validate))
 }

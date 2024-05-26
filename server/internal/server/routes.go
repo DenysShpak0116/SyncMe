@@ -11,12 +11,26 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/gorilla/sessions"
+	"github.com/rs/cors"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
+	r.Use(
+		cors.New(cors.Options{
+			AllowedOrigins:         []string{"http://localhost:8080"},
+			AllowOriginRequestFunc: func(r *http.Request, origin string) bool { return true },
+			AllowedMethods:         []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowedHeaders:         []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+			ExposedHeaders:         []string{"Link"},
+			AllowCredentials:       true,
+			OptionsPassthrough:     true,
+			MaxAge:                 3599,
+		}).Handler,
+	)
+	r.Use(withCORS)
 	r.Get("/", s.HelloWorldHandler)
 	r.Get("/health", s.healthHandler)
 	r.Get("/session", s.userSessionHandler)
@@ -25,6 +39,13 @@ func (s *Server) RegisterRoutes() http.Handler {
 	routes.RegisterGroupRoutes(r)
 	routes.RegisterAuthorRoutes(r)
 	return r
+}
+
+func withCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (s *Server) HelloWorldHandler(w http.ResponseWriter, r *http.Request) {

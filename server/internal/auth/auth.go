@@ -3,6 +3,7 @@ package auth
 import (
 	"log"
 	"os"
+	// "path/filepath"
 
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
@@ -22,9 +23,14 @@ const (
 var Store *sessions.CookieStore
 
 func NewAuth() {
+	// projectDir, err := filepath.Abs("../../")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// envPath := filepath.Join(projectDir, ".env")
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Error loading .env file ", err.Error())
+		log.Fatalf("Error loading .env file: %v", err)
 	}
 
 	googleClientID := os.Getenv("GOOGLE_CLIENT_ID")

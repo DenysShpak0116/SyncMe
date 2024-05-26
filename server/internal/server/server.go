@@ -34,11 +34,11 @@ func NewServer() *http.Server {
 
 	// Создаем обработчик CORS с нужными заголовками
 	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:8080"},  // Разрешенный Origin
-		AllowCredentials: true,                               // Разрешить отправку куки
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS"}, // Разрешенные методы
+		AllowedOrigins:   []string{"http://localhost:8080"}, 
+		AllowCredentials: true,                              
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
-	}).Handler(handler)
+	}).Handler(handler)	
 
 	// Создаем сервер с обработчиком CORS
 	server := &http.Server{
