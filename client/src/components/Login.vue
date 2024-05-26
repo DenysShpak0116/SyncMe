@@ -57,7 +57,7 @@ export default {
         }
   },
   methods: {
-    async login() {
+    async tryLogin() {
       try {
         const response = await fetch('http://localhost:3000/auth/login', {
           method: 'POST',
@@ -69,10 +69,12 @@ export default {
             }
         )
         });
-        if (response.ok) {
-          this.$router.push('/dashboard');
-        } else {
-          // Handle error
+        let res = await response.json();
+        if(res.token){
+            localStorage.setItem("loginToken", res.token);
+            localStorage.setItem("name", this.username);
+            this.$emit('reg',res.token)
+            this.$router.push({name:'main'})
         }
       } catch (error) {
         // Handle error

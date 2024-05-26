@@ -207,7 +207,6 @@ func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid input data", http.StatusBadRequest)
 		return
 	}
-
 	hash, err := auth.HashPassword(body.Password)
 	if err != nil {
 		http.Error(w, "Cannot hash password: "+err.Error(), http.StatusInternalServerError)
@@ -224,6 +223,7 @@ func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 		Country:   body.Country,
 		Role:      "user",
 	}
+	fmt.Println(user)
 
 	dbService := database.Instance()
 	err = dbService.AddUser(user)

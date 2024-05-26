@@ -24,8 +24,27 @@ export default {
           comment:""
         }
   },
+  created() {
+    this.validateToken();
+  },
   methods:{
-    
+    async validateToken() {
+      try {
+        const response = await fetch('http://localhost:3000/validate', {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to validate token');
+        }
+
+        const data = await response.json();
+        this.user = data.user;
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    },
   }
 }
 </script>

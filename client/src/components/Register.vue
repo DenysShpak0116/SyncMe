@@ -12,17 +12,20 @@
                 </h2>
                 <div class="form-block form-block-reg">
                     <div class="register-email">
-                        <input type="text" class="login-input" v-model="email" placeholder="Email">
+                        <input type="text" class="login-input" v-model="Email" placeholder="Email">
                         <p class="send-code">send <br/> code</p>
                     </div>
-                    <input type="text" class="login-input register-code" v-model="verificationCode" placeholder="Verification Code">
-                    <input type="text" class="login-input register-name" v-model="username" placeholder="Username">
-                    <select class="login-input register-country" v-model="country">
+                    <select class="login-input register-country" v-model="Sex">
+                        <option value="Male" selected>Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                    <input type="text" class="login-input register-name" v-model="Username" placeholder="Username">
+                    <select class="login-input register-country" v-model="Country">
                         <option value="Ukraine" selected>Ukraine</option>
                         <option value="Poland">Poland</option>
                         <option value="USA">USA</option>
                     </select>
-                    <input :type="passwordTypeCheck ? 'text' : 'password'" class="login-input register-password" v-model="password" placeholder="Enter password">
+                    <input :type="passwordTypeCheck ? 'text' : 'password'" class="login-input register-password" v-model="Password" placeholder="Enter password">
                     <input :type="passwordTypeCheck ? 'text' : 'password'" class="login-input register-password" v-model="passwordCheck" placeholder="Enter password again">
                     <div class="reg-p-show-block">
                         <input type="checkbox" v-model="passwordTypeCheck" id="passwordC">
@@ -61,21 +64,20 @@ export default {
   name: 'RegisterC',
   data(){
         return{
-            email:"",
-            verificationCode:"1234",
-            username:"",
-            country:"Ukraine",
-            password:"",
+            Email:"",
+            Sex:"Male",
+            Username:"",
+            Country:"Ukraine",
+            Password:"",
             passwordCheck:"",
-            firstName: "",
-            lastName: "",
-            sex: "",
-
+            FirstName: "jenya",
+            LastName: "tkach",
+            passwordTypeCheck:false
         }
   },
   methods: {
     async register() {
-      if (password != passwordCheck) {
+      if (this.Password != this.passwordCheck) {
         alert("Passwords do not match")
         return
       }
@@ -85,20 +87,19 @@ export default {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(
             { 
-                username: this.username, 
-                password: this.password, 
-                email: this.email,
-                country: this.country,
-                firstName: this.firstName,
-                lastName: this.lastName,
-                sex: this.sex
+                username: this.Username, 
+                password: this.Password, 
+                email: this.Email,
+                country: this.Country,
+                firstName: this.FirstName,
+                lastName: this.LastName,
+                sex: this.Sex
             }
         )
         });
-        if (response.ok) {
+        let res = await response.json();
+        if(res){
           this.$router.push('/login');
-        } else {
-            alert(  "Error: " + response.status + " " + response.statusText);
         }
       } catch (error) {
         console.error('Error:', error);
