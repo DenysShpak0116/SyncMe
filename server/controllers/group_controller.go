@@ -84,3 +84,12 @@ func AddGroupFunc(w http.ResponseWriter, r *http.Request) {
 	response := map[string]string{"message": "Group added successfully"}
 	json.NewEncoder(w).Encode(response)
 }
+
+func GetGroupsFunc(w http.ResponseWriter, r *http.Request) {
+	dbServer := database.Instance()
+	groups := dbServer.GetAllGroups()
+	response := groups
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Cannot encode response: "+err.Error(), http.StatusInternalServerError)
+	}
+}
