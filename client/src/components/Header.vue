@@ -6,7 +6,7 @@ export default {
         username: null,
         headerSearch:"",
         loggedIn:this.logged,
-        
+        name: localStorage.getItem('name'),
     };
   },
   props: {
@@ -103,7 +103,14 @@ export default {
                             </svg>
                         </div>
                     </router-link>
-                    <button v-if="this.logged" @click="logout">logout from {{ this.name }}</button>
+                    <router-link
+                        v-if="this.logged"
+                        :to="{name:'profile'}">
+                        <p class="header-prof">
+                            {{name}}
+                        </p>
+                    </router-link>
+                    <button class = "logout" v-if="this.logged" @click="logout">logout from {{ name }}</button>
                 </div>
                 
             </div>

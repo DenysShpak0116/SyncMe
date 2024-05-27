@@ -25,7 +25,7 @@ export default {
         }
   },
   created() {
-    this.validateToken();
+    // this.validateToken();
   },
   methods:{
     async validateToken() {
