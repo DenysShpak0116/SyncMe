@@ -289,6 +289,15 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func GetGroups(w http.ResponseWriter, r *http.Request) {
+	dbServer := database.Instance()
+	groups := dbServer.GetAllGroups()
+	response := groups
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Cannot encode response: "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
 func Validate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

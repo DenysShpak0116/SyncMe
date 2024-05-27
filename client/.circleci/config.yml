@@ -1,0 +1,44 @@
+version: 2.1
+orbs:
+  node: circleci/node@4.7.0
+
+jobs:
+  build-and-run-test:
+    docker:
+      - image: circleci/node:16
+    steps:
+      - checkout
+      - node/restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: Install dependencies
+          command: npm install
+      - node/save_cache:
+          paths:
+            - ~/.npm
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: Run tests
+          command: npm run test
+
+  build-docker-image:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build and push Docker image
+          command: |
+            docker build -t syncmereg.azurecr.io/syncme-client:latest .
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin syncmereg.azurecr.io
+            docker push syncmereg.azurecr.io/syncme-client:latest
+
+workflows:
+  test-and-deploy:
+    jobs:
+      - build-and-run-test
+      - build-docker-image:
+          requires:
+            - build-and-run-test

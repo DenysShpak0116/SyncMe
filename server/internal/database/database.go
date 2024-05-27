@@ -30,6 +30,8 @@ type Service interface {
 	AddUserGroup(userId int, groupId int) error
 
 	AddAuthor(author models.Author) (int, error)
+
+	GetAllGroups() ([]models.Group)
 }
 
 type service struct {
@@ -283,4 +285,28 @@ func (s *service) AddAuthor(author models.Author) (int, error) {
 		return -1, fmt.Errorf("could not retrieve author id: %v", err.Error())
 	}
 	return int(authorId), nil
+}
+
+func GetAllGroups() []models.Group {
+	query := `SELECT * FROM group`
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	rows, err := dbInstance.db.QueryContext(ctx, query)
+	if err != nil {
+		log.Fatalf("could not retrieve groups: %v", err)
+	}
+	defer rows.Close()
+	var groups []models.Group
+	for rows.Next() {
+		var group models.Group
+		err := rows.Scan(&group.GroupId, &group.Name, &group.GroupImage, &group.GroupBackgroundImage)
+		if err != nil {
+			log.Fatalf("could not scan group: %v", err)
+		}
+		groups = append(groups, group)
+	}
+	if err := rows.Err(); err != nil {
+		log.Fatalf("error iterating over groups: %v", err)
+	}
+	return groups
 }
