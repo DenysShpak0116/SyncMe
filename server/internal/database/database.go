@@ -289,30 +289,29 @@ func (s *service) AddAuthor(author models.Author) (int, error) {
 	return int(authorId), nil
 }
 
-func (s *service) GetAllGroups() ([]models.Group, error) {
+func (s *service)  GetAllGroups() ([]models.Group) {
 	query := `SELECT * FROM \'group\'`
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	rows, err := dbInstance.db.QueryContext(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("could not retrieve groups: %v", err)
+		log.Fatalf("could not retrieve groups: %v", err)
 	}
 	defer rows.Close()
 	var groups []models.Group
 	for rows.Next() {
 		var group models.Group
-		err := rows.Scan(&group.GroupId, &group.Name, &group.GroupImage, &group.GroupBackgroundImage, &group.EmotionalAnalysisId)
+		err := rows.Scan(&group.GroupId, &group.Name, &group.GroupImage, &group.GroupBackgroundImage)
 		if err != nil {
-			return nil, fmt.Errorf("could not scan group: %v", err)
+			log.Fatalf("could not scan group: %v", err)
 		}
 		groups = append(groups, group)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating over groups: %v", err)
+		log.Fatalf("error iterating over groups: %v", err)
 	}
-	return groups, nil
+	return groups
 }
-
 
 func (s *service)  GetGroupById(id int) (*models.Group, error) {
 	query := `SELECT * FROM group WHERE GroupId = ?`
