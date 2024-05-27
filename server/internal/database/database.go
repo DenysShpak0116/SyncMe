@@ -290,7 +290,7 @@ func (s *service) AddAuthor(author models.Author) (int, error) {
 }
 
 func (s *service)  GetAllGroups() ([]models.Group) {
-	query := `SELECT * FROM \'group\'`
+	query := "SELECT * FROM `group`"
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	rows, err := dbInstance.db.QueryContext(ctx, query)
