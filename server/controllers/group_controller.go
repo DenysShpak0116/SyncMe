@@ -19,6 +19,7 @@ func AddGroupFunc(w http.ResponseWriter, r *http.Request) {
 		Name                 string `json:"name"`
 		GroupImage           string `json:"group_image"`
 		GroupBackgroundImage string `json:"group_background_image"`
+		Description 		 string `json:"description"`
 	}
 
 	if err := render.Decode(r, &body); err != nil {
@@ -31,6 +32,7 @@ func AddGroupFunc(w http.ResponseWriter, r *http.Request) {
 		Name:                 body.Name,
 		GroupImage:           body.GroupImage,
 		GroupBackgroundImage: body.GroupBackgroundImage,
+		Description: 		body.Description,
 	}
 	groupId, err := dbService.AddGroup(group)
 	if err != nil {
