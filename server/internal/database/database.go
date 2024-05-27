@@ -301,7 +301,7 @@ func (s *service)  GetAllGroups() ([]models.Group) {
 	var groups []models.Group
 	for rows.Next() {
 		var group models.Group
-		err := rows.Scan(&group.GroupId, &group.Name, &group.GroupImage, &group.GroupBackgroundImage)
+		err := rows.Scan(&group.GroupId, &group.Name, &group.GroupImage, &group.GroupBackgroundImage, &group.EmotionalAnalysisId)
 		if err != nil {
 			log.Fatalf("could not scan group: %v", err)
 		}
