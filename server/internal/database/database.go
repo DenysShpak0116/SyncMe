@@ -32,6 +32,8 @@ type Service interface {
 	AddAuthor(author models.Author) (int, error)
 
 	GetAllGroups() ([]models.Group)
+	GetGroupById(id int) (*models.Group, error)
+	GetAuthorsByGroupId(groupId int) ([]models.Author, error)
 }
 
 type service struct {
@@ -287,7 +289,7 @@ func (s *service) AddAuthor(author models.Author) (int, error) {
 	return int(authorId), nil
 }
 
-func GetAllGroups() []models.Group {
+func (s *service)  GetAllGroups() ([]models.Group) {
 	query := `SELECT * FROM group`
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -309,4 +311,50 @@ func GetAllGroups() []models.Group {
 		log.Fatalf("error iterating over groups: %v", err)
 	}
 	return groups
+}
+
+
+func (s *service)  GetGroupById(id int) (*models.Group, error) {
+	query := `SELECT * FROM group WHERE GroupId = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	row := dbInstance.db.QueryRowContext(ctx, query, id)
+	var group models.Group
+	err := row.Scan(&group.GroupId, &group.Name, &group.GroupImage, &group.GroupBackgroundImage)
+	if err != nil {
+		return nil, err
+	}
+	return &group, nil
+}
+
+func (s *service)  GetAuthorsByGroupId(groupId int) ([]models.Author, error) {
+	query := `SELECT * FROM author WHERE GroupId = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	rows, err := dbInstance.db.QueryContext(ctx, query, groupId)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve authors: %v", err)
+	}
+	defer rows.Close()
+	var authors []models.Author
+	for rows.Next() {
+		var author models.Author
+		err := rows.Scan(
+			&author.AuthorId,
+			&author.Name,
+			&author.Username,
+			&author.SocialMedia,
+			&author.AuthorImage,
+			&author.AuthorBackgroundImage,
+			&author.GroupId,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("could not scan author: %v", err)
+		}
+		authors = append(authors, author)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over authors: %v", err)
+	}
+	return authors, nil
 }
