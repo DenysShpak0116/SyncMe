@@ -8,5 +8,6 @@ import (
 func RegisterAuthorRoutes(r chi.Router) {
 	r.Route("/authors", func(r chi.Router) {
 		r.Post("/add", controllers.AddAuthorFunc)
+		r.Post("/get", controllers.GetAuthorsFunc)
 	})
 }

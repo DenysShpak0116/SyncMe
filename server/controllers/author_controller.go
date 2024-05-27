@@ -89,3 +89,33 @@ func addXAuthor(link string, groupId int) (models.Author, error) {
 
 	return author, nil
 }
+
+func GetAuthorsFunc(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		GroupId int `json:"group_id"`
+	}
+
+	if err := render.Decode(r, &body); err != nil {
+		http.Error(w, "Cannot decode: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	dbService := database.Instance()
+	authors, err := dbService.GetAuthorsByGroupId(body.GroupId)
+	if err != nil {
+		http.Error(w, "Cannot retrieve authors: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	group, err := dbService.GetGroupById(body.GroupId)
+	if err != nil {
+		http.Error(w, "Cannot retrieve group: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	response := map[string]interface{}{
+		"group":   group,
+		"authors": authors,
+	}
+	json.NewEncoder(w).Encode(response)
+}
