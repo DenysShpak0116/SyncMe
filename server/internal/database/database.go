@@ -236,11 +236,11 @@ func (s *service) GetUserByEmail(email string) (*models.User, error) {
 }
 
 func (s *service) AddGroup(group models.Group) (int, error) {
-	query := "INSERT INTO `group` (Name, GroupImage, GroupBackgroundImage, Description) VALUES (?, ?, ?)"
+	query := "INSERT INTO `group` (Name, GroupImage, GroupBackgroundImage, Description, EmotionalAnalysisId) VALUES (?, ?, ?, ?, ?)"
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	result, err := s.db.ExecContext(ctx, query, group.Name, group.GroupImage, group.GroupBackgroundImage, group.Description)
+	result, err := s.db.ExecContext(ctx, query, group.Name, group.GroupImage, group.GroupBackgroundImage, group.Description, 1)
 	if err != nil {
 		return -1, fmt.Errorf("could not insert group: %v", err.Error())
 	}
@@ -346,6 +346,7 @@ func (s *service)  GetAuthorsByGroupId(groupId int) ([]models.Author, error) {
 			&author.AuthorImage,
 			&author.AuthorBackgroundImage,
 			&author.GroupId,
+			&author.EmotionalAnalysisId,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("could not scan author: %v", err)

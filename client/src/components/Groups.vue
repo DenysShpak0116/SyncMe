@@ -1,10 +1,15 @@
 <template>
     <div class="groups">
         <div class="container">
+            <router-link
+              :to="{name:'createGroup'}">
+              <button class="view-group-btn">
+                Cerate group
+              </button>
+            </router-link>
             <h1 class="groups-head">Search for a new group</h1>
-            <div class="groups-wrapper" v-for = "group in groups" :key = group.GroupId>
-                {{ log(group) }}
-                <div class="group">
+            <div class="groups-wrapper">
+                <div class="group" v-for = "group in groups" :key = group.GroupId>
                     <div class="group-img">
                         <img :src="group.GroupBackgroundImage" alt="img">
                     </div>
