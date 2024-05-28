@@ -1,0 +1,5 @@
+{
+    "scripts": {
+       "start": "go mod download && go build -o server ./cmd/api/main.go"
+    }
+ }
