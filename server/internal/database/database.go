@@ -31,7 +31,7 @@ type Service interface {
 
 	AddAuthor(author models.Author) (int, error)
 
-	GetAllGroups() ([]models.Group)
+	GetAllGroups() []models.Group
 	GetGroupById(id int) (*models.Group, error)
 	GetAuthorsByGroupId(groupId int) ([]models.Author, error)
 }
@@ -265,19 +265,20 @@ func (s *service) AddUserGroup(userId int, groupId int) error {
 
 func (s *service) AddAuthor(author models.Author) (int, error) {
 	query := `INSERT INTO author (Name, Username, SocialMedia, AuthorImage, 
-		AuthorBackgroundImage, GroupId) VALUES (?, ?, ?, ?, ?, ?)`
+		AuthorBackgroundImage, GroupId, EmotionalAnalysisId) VALUES (?, ?, ?, ?, ?, ?, ?)`
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	result, err := s.db.ExecContext(
-		ctx, 
-		query, 
-		author.Name, 
+		ctx,
+		query,
+		author.Name,
 		author.Username,
 		author.SocialMedia,
 		author.AuthorImage,
 		author.AuthorBackgroundImage,
 		author.GroupId,
+		1,
 	)
 	if err != nil {
 		return -1, fmt.Errorf("could not insert author: %v", err.Error())
@@ -289,7 +290,7 @@ func (s *service) AddAuthor(author models.Author) (int, error) {
 	return int(authorId), nil
 }
 
-func (s *service)  GetAllGroups() ([]models.Group) {
+func (s *service) GetAllGroups() []models.Group {
 	query := "SELECT * FROM `group`"
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -301,7 +302,14 @@ func (s *service)  GetAllGroups() ([]models.Group) {
 	var groups []models.Group
 	for rows.Next() {
 		var group models.Group
-		err := rows.Scan(&group.GroupId, &group.Name, &group.GroupImage, &group.GroupBackgroundImage, &group.EmotionalAnalysisId, &group.Description)
+		err := rows.Scan(
+			&group.GroupId,
+			&group.Name,
+			&group.GroupImage,
+			&group.GroupBackgroundImage,
+			&group.EmotionalAnalysisId,
+			&group.Description,
+		)
 		if err != nil {
 			log.Fatalf("could not scan group: %v", err)
 		}
@@ -313,21 +321,28 @@ func (s *service)  GetAllGroups() ([]models.Group) {
 	return groups
 }
 
-func (s *service)  GetGroupById(id int) (*models.Group, error) {
-	query := `SELECT * FROM group WHERE GroupId = ?`
+func (s *service) GetGroupById(id int) (*models.Group, error) {
+	query := "SELECT GroupId, Name, GroupImage, GroupBackgroundImage, Description, EmotionalAnalysisId FROM `group` WHERE GroupId = ?"
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	row := dbInstance.db.QueryRowContext(ctx, query, id)
 	var group models.Group
-	err := row.Scan(&group.GroupId, &group.Name, &group.GroupImage, &group.GroupBackgroundImage, &group.Description)
+	err := row.Scan(
+		&group.GroupId,
+		&group.Name,
+		&group.GroupImage,
+		&group.GroupBackgroundImage,
+		&group.Description,
+		&group.EmotionalAnalysisId,
+	)
 	if err != nil {
 		return nil, err
 	}
 	return &group, nil
 }
 
-func (s *service)  GetAuthorsByGroupId(groupId int) ([]models.Author, error) {
-	query := `SELECT * FROM author WHERE GroupId = ?`
+func (s *service) GetAuthorsByGroupId(groupId int) ([]models.Author, error) {
+	query := "SELECT AuthorId, Name, Username, SocialMedia, AuthorImage, AuthorBackgroundImage, GroupId, EmotionalAnalysisId FROM author WHERE GroupId = ?"
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	rows, err := dbInstance.db.QueryContext(ctx, query, groupId)
