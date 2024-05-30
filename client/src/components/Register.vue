@@ -123,7 +123,7 @@ export default {
       } catch (error) {
         this.load = false;
         this.msg = "";
-        this.msg = "Користувач с таким ім'ям або поштою вже існує вже існує";
+        this.msg = "Користувач с таким ім'ям або поштою вже";
       }
     }
   }
