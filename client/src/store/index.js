@@ -67,22 +67,19 @@ export default createStore({
               console.error('Ошибка при получении данных:', error);
           }
         },
-        async getUserInfo({commit}){
+        async getUserInfo({ commit }) {
           try {
-              let token = localStorage.getItem("loginToken")
+              let token = localStorage.getItem("loginToken");
               const response = await fetch('http://localhost:3000/validate', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(
-                    { 
-                      token
-                    })
+                  body: JSON.stringify({ token: token })
               });
-              let res = await response.json()
-              commit('setUserInfo',res)
+              let res = await response.json();
+              commit('setUserInfo', res);
           } catch (error) {
-              console.error('Ошибка при получении данных:', error);
+              console.error('Error fetching data:', error);
           }
-        },
+      },      
   }
 })

@@ -290,18 +290,20 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Validate(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+    w.Header().Set("Content-Type", "application/json")
 
-	user := r.Context().Value("user").(*models.User)
-	cookie, _ := r.Cookie("jwt-token")
-	response := map[string]interface{}{
-		"message": "Token is valid",
-		"Token":   cookie.Value,
-		"user":    user,
-	}
+    user, ok := r.Context().Value("user").(*models.User)
+    if !ok || user == nil {
+        http.Error(w, "User not found in context", http.StatusInternalServerError)
+        return
+    }
 
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Cannot encode response: "+err.Error(), http.StatusInternalServerError)
-	}
+    response := map[string]interface{}{
+        "message": "Token is valid",
+        "user":    user,
+    }
+
+    if err := json.NewEncoder(w).Encode(response); err != nil {
+        http.Error(w, "Cannot encode response: "+err.Error(), http.StatusInternalServerError)
+    }
 }
