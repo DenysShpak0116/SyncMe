@@ -5,7 +5,8 @@ export default createStore({
     groups: [],
     authors:[],
     userInfo:[],
-    load:false
+    load:false,
+    name:localStorage.getItem("name"),
   },
   getters:{
     getGroups1(state){
@@ -19,6 +20,9 @@ export default createStore({
     },
     getLoad(state){
       return state.load
+    },
+    getName(state){
+      return state.name
     }
   },
   mutations: {
@@ -34,6 +38,9 @@ export default createStore({
     setLoad(state,payload){
       state.load = payload
     },
+    setName(state,payload){
+      state.name = payload
+    }
   },
   actions:{
         async getGroups({commit}){
@@ -83,6 +90,10 @@ export default createStore({
           } catch (error) {
               console.error('Ошибка при получении данных:', error);
           }
+        },
+        async getName({commit},payload){
+          console.log(payload)
+          commit('setName',payload)
         },
   }
 })
