@@ -85,6 +85,7 @@ export default {
         if(res.token){
             localStorage.setItem("loginToken", res.token);
             localStorage.setItem("name", this.username);
+            this.$store.dispatch('getName',this.username)
             this.$emit('reg',res.token)
             this.$router.push({name:'main'})
         }

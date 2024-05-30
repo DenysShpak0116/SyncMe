@@ -5,8 +5,7 @@ export default {
     return {
         username: null,
         headerSearch:"",
-        loggedIn:this.logged,
-        name: localStorage.getItem('name'),
+        loggedIn:this.logged
     };
   },
   props: {
@@ -21,6 +20,11 @@ export default {
         this.$router.push({name:'login'})
     }
   },
+  computed:{
+    name(){
+        return this.$store.getters.getName
+    }
+  }
 }
     
 </script>
