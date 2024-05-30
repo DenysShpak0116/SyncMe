@@ -4,20 +4,20 @@
         <div class="group-wrapper" :style = "bgImg">
           <div class="group-head">
             <div class="group-head-img">
-                <img :src="groups.GroupImage" alt="img">
+                <img :src="authors.group?.GroupImage" alt="img">
             </div>
             <div class="group-head-info">
-                <h2 class="head-name">{{ groups.Name }}</h2>
-                <p class="head-text">{{ groups.Description }}</p>
+                <h2 class="head-name">{{ authors.group?.Name }}</h2>
+                <p class="head-text">{{ authors.group?.Description }}</p>
                 <button class="group-follow">Follow the group</button>
             </div>
           </div>
           <div class="group-authors">
-            <div class="author">
+            <div class="author" v-for = "a in authorsARR" :key = "a?.AuthorId">
                 <div class="author-img">
-                    <img src="../assets/logouser.jpg" alt="img">
+                    <img :src="a.AuthorImage" alt="img">
                 </div>
-                <h3 class="author-name">Mikio Ikemoto</h3>
+                <h3 class="author-name">{{ a.Name }}</h3>
             </div>
           </div>
         </div>
@@ -28,18 +28,23 @@
         </div>
       </div>
     </div>
+    <PreLoader :isLoading = "load" />
   </template>
 
 <script>
 import Post from '../components/Post.vue'
+import PreLoader from '../components/PreLoader.vue'
 
 export default {
   name: 'GroupC',
   components: {
-    Post
+    Post,
+    PreLoader
   },
   created() {
-    this.$store.dispatch('getAuthors',this.$route.params.id)
+    if(this.$route.params?.id){
+      this.$store.dispatch('getAuthors',this.id)
+    }
   },
   data(){
         return{
@@ -57,8 +62,8 @@ export default {
     },
     bgImg(){
       return {
-        backgroundImage: `url(${this.groups.GroupBackgroundImage})`,
-        'background-position': 'center'
+        backgroundImage: `url(${this.authors?.group?.GroupBackgroundImage})`,
+        'background-position': 'center',
       }
     },
     groups(){
@@ -72,7 +77,13 @@ export default {
     },
     authors(){
         return this.$store.getters.getAuthors1
-    }
+    },
+    authorsARR(){
+        return this.$store.getters.getAuthors1.authors
+    },
+    load(){
+        return this.$store.getters.getLoad
+    },
   }
   }
 

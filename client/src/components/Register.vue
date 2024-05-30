@@ -58,11 +58,20 @@
             </div>
         </div>
     </div>
+    <PreLoader :isLoading = "load" />
+    <Notification :message = "msg"/>
 </template>
 
 <script>
+
+import PreLoader from '../components/PreLoader.vue'
+import Notification from '../components/Notification.vue'
 export default {
   name: 'RegisterC',
+  components: {
+    PreLoader,
+    Notification
+  },
   data(){
         return{
             Email:"",
@@ -73,16 +82,25 @@ export default {
             passwordCheck:"",
             FirstName: "",
             LastName: "",
-            passwordTypeCheck:false
+            passwordTypeCheck:false,
+            load:false,
+            msg:"",
         }
   },
   methods: {
     async register() {
       if (this.Password != this.passwordCheck) {
-        alert("Passwords do not match")
+        this.msg = "";
+        this.msg = "Паролі не співпадають";
+        return
+      }
+      if(this.Email == "" || this.Username == "" || this.Password == "" || this.passwordCheck == "" || this.FirstName == "" || this.LastName == ""){
+        this.msg = "";
+        this.msg = "Заповніть усі поля";
         return
       }
       try {
+        this.load = true;
         const response = await fetch('http://localhost:3000/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -103,7 +121,9 @@ export default {
           this.$router.push('/login');
         }
       } catch (error) {
-        console.error('Error:', error);
+        this.load = false;
+        this.msg = "";
+        this.msg = "Користувач с таким ім'ям або поштою вже існує вже існує";
       }
     }
   }

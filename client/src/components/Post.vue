@@ -109,7 +109,7 @@
                 </svg>
               </div>
             </div>
-            <div class="post-comment-block notVisible">
+            <div :class="comentStyle">
               <div class="post-comment-img-block">
                 <div class="post-comment-img">
                   <img src="../assets/logouser.jpg" alt="Logo">
@@ -150,7 +150,7 @@
                 </svg>
               </div>
             </div>
-            <button class="see-more">
+            <button class="see-more" @click = "more">
               See more ▽
             </button>
           </div>
@@ -162,11 +162,15 @@ export default {
   name: 'PostC',
   data(){
         return{
-          comment:""
+          comment:"",
+          comentStyle:['post-comment-block','notVisible']
         }
   },
   methods:{
-    
+    more(e){
+      e.target.style.display = 'none'
+      this.comentStyle = ['post-comment-block']
+    }
   }
 }
 </script>

@@ -45,20 +45,32 @@
             </div>
         </div>
     </div>
+    <PreLoader :isLoading = "load" />
+    <Notification :message = "msg"/>
 </template>
 
 <script>
+
+import PreLoader from '../components/PreLoader.vue'
+import Notification from '../components/Notification.vue'
 export default {
   name: 'LoginC',
+  components: {
+    PreLoader,
+    Notification
+  },
   data(){
         return{
+            load:false,
             username:"",
             password:"",
+            msg:"",
         }
   },
   methods: {
     async tryLogin() {
       try {
+        this.load = true;
         const response = await fetch('http://localhost:3000/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -76,7 +88,9 @@ export default {
             this.$router.push({name:'main'})
         }
       } catch (error) {
-        // Handle error
+        this.load = false;
+        this.msg = ""
+        this.msg = "Введено неправильні дані"
       }
     },
     async apiLogin(name) {

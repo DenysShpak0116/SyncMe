@@ -23,17 +23,22 @@
             </div>
         </div>
     </div>
+    <PreLoader :isLoading = "load" />
   </template>
 
 <script>
+import PreLoader from '../components/PreLoader.vue'
 export default {
   name: 'GroupsC',
-    created(){
-        this.$store.dispatch('getGroups')
-    },
+  components: {
+    PreLoader
+  },
+  created(){
+      this.$store.dispatch('getGroups')
+  },
   data(){
         return{
-            
+
         }
   },
   methods:{
@@ -44,7 +49,10 @@ export default {
   computed:{
     groups(){
         return this.$store.getters.getGroups1
-    }
+    },
+    load(){
+        return this.$store.getters.getLoad
+    },
   }
 }
 </script>
