@@ -13,7 +13,7 @@
             </div>
           </div>
           <div class="group-authors">
-            <div class="author" v-for = "a in authorsARR" :key = "a?.AuthorId">
+            <div class="author" v-for = "a in authorsARR" :key = "a?.AuthorId" :style = "bgImg1(a)">
                 <div class="author-img">
                     <img :src="a.AuthorImage" alt="img">
                 </div>
@@ -54,7 +54,13 @@ export default {
   methods:{
     log(a){
       console.log(a)
-    }
+    },
+    bgImg1(a){
+      return {
+        backgroundImage: `url(${a.AuthorBackgroundImage})`,
+        'background-position': 'center',
+      }
+    },
   },
   computed:{
     id(){

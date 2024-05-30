@@ -4,12 +4,13 @@
       <div class="group-wrapper" :style = "bgImg">
         <div class="group-head">
           <div class="group-head-img">
-              <img :src="authors.group?.GroupImage" alt="img">
+              <img src = "../assets/logouser.jpg" alt="img">
           </div>
           <div class="group-head-info">
-              <h2 class="head-name">{{ authors.group?.Name }}</h2>
-              <p class="head-text">{{ authors.group?.Description }}</p>
-              <button class="group-follow">Follow the group</button>
+              <h2 class="head-name">{{ uInfo.username }}</h2>
+              <p class="head-text"></p>
+              <p class="head-text">Sex: {{ uInfo.sex }}</p>
+              <p class="head-text">Country:  {{ uInfo.country }}</p>
           </div>
         </div>
         <div class="group-authors">
@@ -77,7 +78,7 @@ computed:{
       return this.$store.getters.getAuthors1.authors
   },
   uInfo(){
-    return this.$store.getters.getUserInfo1
+    return this.$store.getters.getUserInfo1.user
   }
 }
 }
