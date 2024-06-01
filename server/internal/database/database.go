@@ -223,7 +223,7 @@ func (s *service) GetAllUsers() ([]models.User, error) {
 }
 
 func (s *service) GetUserByUsername(username string) (*models.User, error) {
-	query := `SELECT * FROM user WHERE Username = ?`
+	query := `SELECT UserId, Username, Password, Email, FirstName,LastName, Sex, Country, Role, Logo, BgImage FROM user WHERE Username = ?`
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	row := s.db.QueryRowContext(ctx, query, username)
@@ -247,7 +247,7 @@ func (s *service) GetUserByUsername(username string) (*models.User, error) {
 	return &user, nil
 }
 func (s *service) GetUserById(id int) (*models.User, error) {
-	query := `SELECT * FROM user WHERE UserId = ?`
+	query := `SELECT UserId, Username, Password, Email, FirstName, LastName, Sex, Country, Role, Logo, BgImage FROM user WHERE UserId = ?`
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	row := s.db.QueryRowContext(ctx, query, id)
@@ -272,7 +272,7 @@ func (s *service) GetUserById(id int) (*models.User, error) {
 }
 
 func (s *service) GetUserByEmail(email string) (*models.User, error) {
-	query := `SELECT * FROM user WHERE Email = ?`
+	query := `SELECT UserId, Username, Password, Email, FirstName, LastName, Sex, Country, Role, Logo, BgImage FROM user WHERE Email = ?`
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	row := s.db.QueryRowContext(ctx, query, email)
@@ -284,8 +284,8 @@ func (s *service) GetUserByEmail(email string) (*models.User, error) {
 		&user.Email,
 		&user.FirstName,
 		&user.LastName,
-		&user.Country,
 		&user.Sex,
+		&user.Country,
 		&user.Role,
 		&user.Logo,
 		&user.BgImage,
@@ -481,7 +481,6 @@ func (s *service) AddPost(post models.Post) (int, error) {
 	return int(postId), nil
 }
 
-
 func (s *service) AddPhoto(photo models.XPhoto) (int, error) {
 	query := `INSERT INTO xphoto (URL, PostId) VALUES (?, ?)`
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -502,7 +501,6 @@ func (s *service) AddPhoto(photo models.XPhoto) (int, error) {
 	}
 	return int(photoId), nil
 }
-
 
 func (s *service) AddVideo(video models.XVideo) (int, error) {
 	query := `INSERT INTO xvideo (URL, PostId) VALUES (?, ?)`
@@ -556,7 +554,6 @@ func (s *service) GetPostsByAuthorId(authorId int) ([]models.Post, error) {
 	}
 	return posts, nil
 }
-
 
 func (s *service) GetPhotosByPostId(postId int) ([]models.XPhoto, error) {
 	query := `SELECT XPhotoId, URL, PostId FROM xphoto WHERE PostId = ?`
