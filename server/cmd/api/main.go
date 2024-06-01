@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"server/internal/server"
 	"server/internal/auth"
+	"server/internal/utils"
 )
 
 func main() {
-
+	utils.InitPhotos()
 	auth.NewAuth()
 	server := server.NewServer()
 

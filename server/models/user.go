@@ -10,4 +10,6 @@ type User struct {
 	Sex       string `db:"Sex" json:"sex"`
 	Country   string `db:"Country" json:"country"`
 	Role      string `db:"Role" json:"role"`
+	Logo     string  `db:"logo" json:"logo"`
+	BgImage  string  `db:"BgImage" json:"bgImage"`
 }

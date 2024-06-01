@@ -19,6 +19,7 @@ import (
 type Service interface {
 	Health() map[string]string
 	Close() error
+
 	AddUser(user models.User) error
 	GetAllUsers() ([]models.User, error)
 	GetUserByUsername(login string) (*models.User, error)
@@ -26,14 +27,23 @@ type Service interface {
 	GetUserByEmail(email string) (*models.User, error)
 
 	AddGroup(group models.Group) (int, error)
+	GetAllGroups() []models.Group
+	GetGroupById(id int) (*models.Group, error)
 
 	AddUserGroup(userId int, groupId int) error
 
 	AddAuthor(author models.Author) (int, error)
-
-	GetAllGroups() []models.Group
-	GetGroupById(id int) (*models.Group, error)
+	GetAuthorById(id int) (*models.Author, error)
 	GetAuthorsByGroupId(groupId int) ([]models.Author, error)
+
+	AddPost(post models.Post) (int, error)
+	GetPostsByAuthorId(authorId int) ([]models.Post, error)
+
+	AddPhoto(photo models.XPhoto) (int, error)
+	GetPhotosByPostId(postId int) ([]models.XPhoto, error)
+
+	AddVideo(video models.XVideo) (int, error)
+	GetVideosByPostId(postId int) ([]models.XVideo, error)
 }
 
 type service struct {
@@ -63,7 +73,7 @@ func New() Service {
 	db, err := sql.Open(
 		"mysql",
 		fmt.Sprintf(
-			"%s:%s@tcp(%s:%s)/%s",
+			"%s:%s@tcp(%s:%s)/%s?parseTime=true",
 			username,
 			password,
 			host,
@@ -148,11 +158,24 @@ func (s *service) Close() error {
 }
 
 func (s *service) AddUser(user models.User) error {
-	query := `INSERT INTO user (username, password, email, firstname, lastname, sex, country, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO user (username, password, email, firstname, lastname, sex, country, role, logo, bgimage) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := s.db.ExecContext(ctx, query, user.Username, user.Password, user.Email, user.FirstName, user.LastName, user.Sex, user.Country, user.Role)
+	_, err := s.db.ExecContext(
+		ctx,
+		query,
+		user.Username,
+		user.Password,
+		user.Email,
+		user.FirstName,
+		user.LastName,
+		user.Sex,
+		user.Country,
+		user.Role,
+		user.Logo,
+		user.BgImage,
+	)
 	if err != nil {
 		return fmt.Errorf("could not insert user: %v", err)
 	}
@@ -173,7 +196,19 @@ func (s *service) GetAllUsers() ([]models.User, error) {
 	var users []models.User
 	for rows.Next() {
 		var user models.User
-		err := rows.Scan(&user.UserId, &user.Username, &user.Password, &user.Email, &user.FirstName, &user.LastName, &user.Sex, &user.Country, &user.Role)
+		err := rows.Scan(
+			&user.UserId,
+			&user.Username,
+			&user.Password,
+			&user.Email,
+			&user.FirstName,
+			&user.LastName,
+			&user.Sex,
+			&user.Country,
+			&user.Role,
+			&user.Logo,
+			&user.BgImage,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("could not scan user: %v", err)
 		}
@@ -193,7 +228,19 @@ func (s *service) GetUserByUsername(username string) (*models.User, error) {
 	defer cancel()
 	row := s.db.QueryRowContext(ctx, query, username)
 	var user models.User
-	err := row.Scan(&user.UserId, &user.Username, &user.Password, &user.Email, &user.FirstName, &user.LastName, &user.Sex, &user.Country, &user.Role)
+	err := row.Scan(
+		&user.UserId,
+		&user.Username,
+		&user.Password,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.Sex,
+		&user.Country,
+		&user.Role,
+		&user.Logo,
+		&user.BgImage,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +252,19 @@ func (s *service) GetUserById(id int) (*models.User, error) {
 	defer cancel()
 	row := s.db.QueryRowContext(ctx, query, id)
 	var user models.User
-	err := row.Scan(&user.UserId, &user.Username, &user.Password, &user.Email, &user.FirstName, &user.LastName, &user.Sex, &user.Country, &user.Role)
+	err := row.Scan(
+		&user.UserId,
+		&user.Username,
+		&user.Password,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.Sex,
+		&user.Country,
+		&user.Role,
+		&user.Logo,
+		&user.BgImage,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -228,6 +287,8 @@ func (s *service) GetUserByEmail(email string) (*models.User, error) {
 		&user.Country,
 		&user.Sex,
 		&user.Role,
+		&user.Logo,
+		&user.BgImage,
 	)
 	if err != nil {
 		return nil, err
@@ -372,4 +433,183 @@ func (s *service) GetAuthorsByGroupId(groupId int) ([]models.Author, error) {
 		return nil, fmt.Errorf("error iterating over authors: %v", err)
 	}
 	return authors, nil
+}
+
+func (s *service) GetAuthorById(id int) (*models.Author, error) {
+	query := "SELECT AuthorId, Name, Username, SocialMedia, AuthorImage, AuthorBackgroundImage, GroupId, EmotionalAnalysisId FROM author WHERE AuthorId = ?"
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	row := dbInstance.db.QueryRowContext(ctx, query, id)
+	var author models.Author
+	err := row.Scan(
+		&author.AuthorId,
+		&author.Name,
+		&author.Username,
+		&author.SocialMedia,
+		&author.AuthorImage,
+		&author.AuthorBackgroundImage,
+		&author.GroupId,
+		&author.EmotionalAnalysisId,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &author, nil
+}
+
+func (s *service) AddPost(post models.Post) (int, error) {
+	query := `INSERT INTO post (TextContent, Date, CountOfLikes, AuthorId, EmotionalAnalysisId) VALUES (?, ?, ?, ?, ?)`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result, err := s.db.ExecContext(
+		ctx,
+		query,
+		post.TextContent,
+		post.Date,
+		post.CountOfLikes,
+		post.AuthorId,
+		post.EmotionalAnalysisId,
+	)
+	if err != nil {
+		return -1, fmt.Errorf("could not insert post: %v", err)
+	}
+	postId, err := result.LastInsertId()
+	if err != nil {
+		return -1, fmt.Errorf("could not retrieve post id: %v", err)
+	}
+	return int(postId), nil
+}
+
+
+func (s *service) AddPhoto(photo models.XPhoto) (int, error) {
+	query := `INSERT INTO xphoto (URL, PostId) VALUES (?, ?)`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result, err := s.db.ExecContext(
+		ctx,
+		query,
+		photo.URL,
+		photo.PostId,
+	)
+	if err != nil {
+		return -1, fmt.Errorf("could not insert photo: %v", err.Error())
+	}
+	photoId, err := result.LastInsertId()
+	if err != nil {
+		return -1, fmt.Errorf("could not retrieve photo id: %v", err.Error())
+	}
+	return int(photoId), nil
+}
+
+
+func (s *service) AddVideo(video models.XVideo) (int, error) {
+	query := `INSERT INTO xvideo (URL, PostId) VALUES (?, ?)`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result, err := s.db.ExecContext(
+		ctx,
+		query,
+		video.URL,
+		video.PostId,
+	)
+	if err != nil {
+		return -1, fmt.Errorf("could not insert video: %v", err.Error())
+	}
+	videoId, err := result.LastInsertId()
+	if err != nil {
+		return -1, fmt.Errorf("could not retrieve video id: %v", err.Error())
+	}
+	return int(videoId), nil
+}
+
+func (s *service) GetPostsByAuthorId(authorId int) ([]models.Post, error) {
+	query := `SELECT PostId, TextContent, Date, CountOfLikes, AuthorId, EmotionalAnalysisId FROM post WHERE AuthorId = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	rows, err := s.db.QueryContext(ctx, query, authorId)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve posts: %v", err)
+	}
+	defer rows.Close()
+
+	var posts []models.Post
+	for rows.Next() {
+		var post models.Post
+		err := rows.Scan(
+			&post.PostId,
+			&post.TextContent,
+			&post.Date,
+			&post.CountOfLikes,
+			&post.AuthorId,
+			&post.EmotionalAnalysisId,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("could not scan post: %v", err)
+		}
+		posts = append(posts, post)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over posts: %v", err)
+	}
+	return posts, nil
+}
+
+
+func (s *service) GetPhotosByPostId(postId int) ([]models.XPhoto, error) {
+	query := `SELECT XPhotoId, URL, PostId FROM xphoto WHERE PostId = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	rows, err := s.db.QueryContext(ctx, query, postId)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve photos: %v", err)
+	}
+	defer rows.Close()
+	var photos []models.XPhoto
+	for rows.Next() {
+		var photo models.XPhoto
+		err := rows.Scan(
+			&photo.XPhotoId,
+			&photo.URL,
+			&photo.PostId,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("could not scan photo: %v", err)
+		}
+		photos = append(photos, photo)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over photos: %v", err)
+	}
+	return photos, nil
+}
+
+func (s *service) GetVideosByPostId(postId int) ([]models.XVideo, error) {
+	query := `SELECT XVideoId, URL, PostId FROM xvideo WHERE PostId = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	rows, err := s.db.QueryContext(ctx, query, postId)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve videos: %v", err)
+	}
+	defer rows.Close()
+	var videos []models.XVideo
+	for rows.Next() {
+		var video models.XVideo
+		err := rows.Scan(
+			&video.XVideoId,
+			&video.URL,
+			&video.PostId,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("could not scan video: %v", err)
+		}
+		videos = append(videos, video)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over videos: %v", err)
+	}
+	return videos, nil
 }

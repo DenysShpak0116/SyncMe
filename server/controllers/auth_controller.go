@@ -16,6 +16,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/markbates/goth/gothic"
+	"server/internal/utils"
 )
 
 func GetAuthCallbackFuntion(w http.ResponseWriter, r *http.Request) {
@@ -80,14 +81,22 @@ func GetAuthCallbackFuntion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newUser *models.User
+	bgLink, err := utils.GetRandomPhoto()
+	if err != nil {
+		http.Error(w, "Cannot get random photo: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	err = dbService.AddUser(models.User{
 		Username:  user.NickName,
 		Email:     user.Email,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Country:   user.Location,
-		Sex:       "Other",
+		Sex: 	   "Other",
 		Role:      "user",
+		Logo:      user.AvatarURL,
+		BgImage:   bgLink,
 	})
 	if err != nil {
 		http.Error(w, "Cannot add user: "+err.Error(), http.StatusInternalServerError)
@@ -212,7 +221,17 @@ func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Cannot hash password: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	bgLink, err := utils.GetRandomPhoto()
+	if err != nil {
+		http.Error(w, "Cannot get random photo: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	logoLink, err := utils.GetRandomPhoto()
+	if err != nil {
+		http.Error(w, "Cannot get random photo: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 	user := models.User{
 		Username:  body.Username,
 		Password:  hash,
@@ -222,6 +241,8 @@ func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 		Sex:       body.Sex,
 		Country:   body.Country,
 		Role:      "user",
+		Logo:      logoLink,
+		BgImage:   bgLink,
 	}
 	fmt.Println(user)
 
