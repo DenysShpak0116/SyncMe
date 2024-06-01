@@ -54,7 +54,7 @@ func AddAuthorFunc(w http.ResponseWriter, r *http.Request) {
 }
 
 func addXAuthor(link string, groupId int) (models.Author, error) {
-	regularExpression := regexp.MustCompile(`^https://x.com/[a-zA-Z0-9]+$`)
+	regularExpression := regexp.MustCompile(`^https://x.com/[a-zA-Z0-9_]+$`)
 	if !regularExpression.MatchString(link) {
 		return models.Author{}, fmt.Errorf("Invalid link")
 	}
