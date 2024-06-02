@@ -44,6 +44,8 @@ type Service interface {
 
 	AddVideo(video models.XVideo) (int, error)
 	GetVideosByPostId(postId int) ([]models.XVideo, error)
+
+	AddMessage(message models.Message) (int, error)
 }
 
 type service struct {
@@ -609,4 +611,27 @@ func (s *service) GetVideosByPostId(postId int) ([]models.XVideo, error) {
 		return nil, fmt.Errorf("error iterating over videos: %v", err)
 	}
 	return videos, nil
+}
+
+func (s *service) AddMessage(message models.Message) (int, error) {
+	query := `INSERT INTO message (Text, SentAt, UserFromId, UserToId) VALUES (?, ?, ?, ?)`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result, err := s.db.ExecContext(
+		ctx,
+		query,
+		message.Text,
+		message.SentAt,
+		message.UserFromId,
+		message.UserToId,
+	)
+	if err != nil {
+		return -1, fmt.Errorf("could not insert message: %v", err)
+	}
+	messageId, err := result.LastInsertId()
+	if err != nil {
+		return -1, fmt.Errorf("could not retrieve message id: %v", err)
+	}
+	return int(messageId), nil
 }
