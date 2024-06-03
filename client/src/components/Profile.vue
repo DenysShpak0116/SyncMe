@@ -1,46 +1,40 @@
 <template>
   <div class="groupa">
     <div class="container">
-      <div class="group-wrapper" :style = "bgImg">
+      <div class="group-wrapper" :style = "bgImg(uInfo)">
         <div class="group-head">
           <div class="group-head-img">
-              <img src = "../assets/logouser.jpg" alt="img">
+              <img :src = "uInfo?.logo" alt="img">
           </div>
           <div class="group-head-info">
-              <h2 class="head-name">{{ uInfo.username }}</h2>
+              <h2 class="head-name">{{ uInfo?.username }}</h2>
               <p class="head-text"></p>
-              <p class="head-text">Sex: {{ uInfo.sex }}</p>
-              <p class="head-text">Country:  {{ uInfo.country }}</p>
-          </div>
-        </div>
-        <div class="group-authors">
-          <div class="author" v-for = "a in authorsARR" :key = "a?.AuthorId">
-              <div class="author-img">
-                  <img :src="a.AuthorImage" alt="img">
-              </div>
-              <h3 class="author-name">{{ a.Name }}</h3>
+              <p class="head-text">Sex: {{ uInfo?.sex }}</p>
+              <p class="head-text">Country:  {{ uInfo?.country }}</p>
           </div>
         </div>
       </div>
       <div class="posts-wrapper">
-        <Post></Post>
-        <Post></Post>{{ log(uInfo) }}
-        <Post></Post>
+        <Post :author="posts" :info="el" v-for="el in posts.posts" :key = "el.PostId"></Post>
       </div>
     </div>
   </div>
+  <PreLoader :isLoading = "load" />
 </template>
 
 <script>
+import PreLoader from '../components/PreLoader.vue'
 import Post from '../components/Post.vue'
 
 export default {
 name: 'GroupC',
 components: {
-  Post
+  Post,
+  PreLoader
 },
 created() {
   this.$store.dispatch('getUserInfo')
+  this.$store.dispatch('getPosts',9)
 },
 data(){
       return{
@@ -50,17 +44,17 @@ data(){
 methods:{
   log(a){
     console.log(a)
-  }
+  },
+  bgImg(a){
+    return {
+      backgroundImage: `url(${a?.bgImage})`,
+      'background-position': 'center',
+    }
+  },
 },
 computed:{
   id(){
     return this.$route.params.id
-  },
-  bgImg(){
-    return {
-      backgroundImage: `url(${this.authors?.group?.GroupBackgroundImage})`,
-      'background-position': 'center',
-    }
   },
   groups(){
       let arr=this.$store.getters.getGroups1
@@ -78,8 +72,14 @@ computed:{
       return this.$store.getters.getAuthors1.authors
   },
   uInfo(){
-    return this.$store.getters.getUserInfo1.user
-  }
+    return this.$store.getters?.getUserInfo1?.user
+  },
+  load(){
+        return this.$store.getters.getLoad
+    },
+    posts(){
+        return this.$store.getters.getPosts1
+    },
 }
 }
 

@@ -7,6 +7,7 @@ export default createStore({
     userInfo:[],
     load:false,
     name:localStorage.getItem("name"),
+    posts:[]
   },
   getters:{
     getGroups1(state){
@@ -23,6 +24,9 @@ export default createStore({
     },
     getName(state){
       return state.name
+    },
+    getPosts1(state){
+      return state.posts
     }
   },
   mutations: {
@@ -40,6 +44,9 @@ export default createStore({
     },
     setName(state,payload){
       state.name = payload
+    },
+    setPosts(state,payload){
+      state.posts = payload
     }
   },
   actions:{
@@ -57,6 +64,7 @@ export default createStore({
             }
         },
         async getAuthors({commit},payload){
+          let res;
           try {
                 commit('setLoad',true)
               const response = await fetch('http://localhost:3000/authors/get', {
@@ -67,15 +75,31 @@ export default createStore({
                       group_id: +payload,
                     })
               });
-              let res = await response.json()
+              res = await response.json()
               commit('setAuthors',res)
-              commit('setLoad',false)
+          } catch (error) {
+              console.error('Ошибка при получении данных:', error);
+          }
+          try {
+            let arr = [];
+            if(res.authors){
+              for(let el of res.authors){
+                const response = await fetch(`http://localhost:3000/authors/get/${el.AuthorId}`, {
+                  method: 'GET',
+                });
+                let result = await response.json()
+                arr.push(result)
+              }
+            }
+            commit('setPosts',arr)
+            commit('setLoad',false)
           } catch (error) {
               console.error('Ошибка при получении данных:', error);
           }
         },
         async getUserInfo({ commit }) {
           try {
+              commit('setLoad',true)
               let token = localStorage.getItem("loginToken");
               const response = await fetch('http://localhost:3000/validate', {
                   method: 'POST',
@@ -91,6 +115,15 @@ export default createStore({
         async getName({commit},payload){
           console.log(payload)
           commit('setName',payload)
+        },
+        async getPosts({commit},payload){
+          commit('setLoad',true)
+            const response = await fetch(`http://localhost:3000/authors/get/${payload}`, {
+              method: 'GET',
+            });
+            let result = await response.json()   
+            commit('setPosts',result)
+            commit('setLoad',false)
         },
   }
 })

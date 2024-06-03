@@ -22,9 +22,9 @@
           </div>
         </div>
         <div class="posts-wrapper">
-          <Post></Post>
-          <Post></Post>
-          <Post></Post>
+          <div v-for="a in posts" :key = "a.AuthorId">
+            <Post :author="a" :info="el" v-for="el in a.posts" :key = "el.PostId"></Post>
+          </div>
         </div>
       </div>
     </div>
@@ -42,9 +42,7 @@ export default {
     PreLoader
   },
   created() {
-    if(this.$route.params?.id){
-      this.$store.dispatch('getAuthors',this.id)
-    }
+    this.$store.dispatch('getAuthors',this.id)
   },
   data(){
         return{
@@ -86,6 +84,9 @@ export default {
     },
     authorsARR(){
         return this.$store.getters.getAuthors1.authors
+    },
+    posts(){
+        return this.$store.getters.getPosts1
     },
     load(){
         return this.$store.getters.getLoad

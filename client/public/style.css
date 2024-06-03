@@ -833,3 +833,21 @@ input{
     font-weight: 400;
     line-height: normal;
 }
+.post-like-count{
+    color: #936CB0;
+    text-align: center;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: normal;
+    cursor: pointer;
+}
+.post-text{
+    color: #9f79bd;
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: normal;
+    margin: 15px 0;
+    padding: 0 30px;
+}
