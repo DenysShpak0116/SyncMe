@@ -32,7 +32,7 @@
             </div>
           </div>
           <div class="post-img">
-              <img src="../assets/logouser.jpg" alt="img">
+              <img v-if="info?.photos" :src="getImg(info?.photos)" alt="img">
           </div>
           <div class="post-text">
               <p>{{ info?.textContent }}</p>
@@ -89,7 +89,7 @@
                 </div>
                 <div class="post-comment-text">
                   <p>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Nam dolorem esse necessitatibus natus repellendus, sunt provident sequi modi? Ipsa eum facere, accusantium, aliquid voluptatibus rerum at sequi explicabo laborum mollitia repudiandae, laudantium hic beatae delectus nisi eaque. Dicta nesciunt voluptate ipsam commodi? Animi, molestiae. Totam, neque. Pariatur libero nulla natus!
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
                   </p>
                 </div>
                 <div class="post-comment-functions">
@@ -130,7 +130,7 @@
                 </div>
                 <div class="post-comment-text">
                   <p>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Nam dolorem esse necessitatibus natus repellendus, sunt provident sequi modi? Ipsa eum facere, accusantium, aliquid voluptatibus rerum at sequi explicabo laborum mollitia repudiandae, laudantium hic beatae delectus nisi eaque. Dicta nesciunt voluptate ipsam commodi? Animi, molestiae. Totam, neque. Pariatur libero nulla natus!
+                    Nam dolorem esse necessitatibus natus repellendus, sunt provident sequi modi? Ipsa eum facere, accusantium, aliquid voluptatibus rerum at sequi explicabo laborum mollitia repudiandae, laudantium hic beatae delectus nisi eaque. Dicta nesciunt voluptate ipsam commodi? Animi, molestiae. Totam, neque. Pariatur libero nulla natus!
                   </p>
                 </div>
                 <div class="post-comment-functions">
@@ -183,7 +183,15 @@ export default {
     more(e){
       e.target.style.display = 'none'
       this.comentStyle = ['post-comment-block']
+    },
+    getImg(arr){
+      if(arr == null){
+        return null;
+      }else{
+        return arr[0].url;
+      }
     }
-  }
+  },
+    
 }
 </script>
