@@ -15,7 +15,6 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-// Service represents a service that interacts with a database.
 type Service interface {
 	Health() map[string]string
 	Close() error
@@ -46,6 +45,7 @@ type Service interface {
 	GetVideosByPostId(postId int) ([]models.XVideo, error)
 
 	AddMessage(message models.Message) (int, error)
+	GetChat(disscusserId int, currentUserId int) ([]models.Message, error)
 }
 
 type service struct {
@@ -634,4 +634,35 @@ func (s *service) AddMessage(message models.Message) (int, error) {
 		return -1, fmt.Errorf("could not retrieve message id: %v", err)
 	}
 	return int(messageId), nil
+}
+
+func (s *service) GetChat(disscusserId int, currentUserId int) ([]models.Message, error) {
+	query := `SELECT MessageId, Text, SentAt, UserFromId, UserToId FROM message WHERE (UserFromId = ? AND UserToId = ?) OR (UserFromId = ? AND UserToId = ?) ORDER BY SentAt`
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	rows, err := s.db.QueryContext(ctx, query, disscusserId, currentUserId, currentUserId, disscusserId)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve messages: %v", err)
+	}
+	defer rows.Close()
+
+	var messages []models.Message
+	for rows.Next() {
+		var message models.Message
+		err := rows.Scan(
+			&message.MessageId,
+			&message.Text,
+			&message.SentAt,
+			&message.UserFromId,
+			&message.UserToId,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("could not scan message: %v", err)
+		}
+		messages = append(messages, message)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over messages: %v", err)
+	}
+	return messages, nil
 }
