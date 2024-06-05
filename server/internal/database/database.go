@@ -15,7 +15,6 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-// Service represents a service that interacts with a database.
 type Service interface {
 	Health() map[string]string
 	Close() error
@@ -46,6 +45,11 @@ type Service interface {
 	GetVideosByPostId(postId int) ([]models.XVideo, error)
 
 	AddMessage(message models.Message) (int, error)
+	DeleteMessage(messageId int) error
+	GetChat(disscusserId int, currentUserId int) ([]models.Message, error)
+
+	AddComment(comment models.Comment) (int, error)
+	GetPostComments(postId int) ([]models.Comment, error)
 }
 
 type service struct {
@@ -634,4 +638,101 @@ func (s *service) AddMessage(message models.Message) (int, error) {
 		return -1, fmt.Errorf("could not retrieve message id: %v", err)
 	}
 	return int(messageId), nil
+}
+
+func (s *service) GetChat(disscusserId int, currentUserId int) ([]models.Message, error) {
+	query := `SELECT MessageId, Text, SentAt, UserFromId, UserToId FROM message WHERE (UserFromId = ? AND UserToId = ?) OR (UserFromId = ? AND UserToId = ?) ORDER BY SentAt`
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	rows, err := s.db.QueryContext(ctx, query, disscusserId, currentUserId, currentUserId, disscusserId)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve messages: %v", err)
+	}
+	defer rows.Close()
+
+	var messages []models.Message
+	for rows.Next() {
+		var message models.Message
+		err := rows.Scan(
+			&message.MessageId,
+			&message.Text,
+			&message.SentAt,
+			&message.UserFromId,
+			&message.UserToId,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("could not scan message: %v", err)
+		}
+		messages = append(messages, message)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over messages: %v", err)
+	}
+	return messages, nil
+}
+
+func (s *service) DeleteMessage(messageId int) error {
+	query := `DELETE FROM message WHERE MessageId = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := s.db.ExecContext(ctx, query, messageId)
+	if err != nil {
+		return fmt.Errorf("could not delete message: %v", err)
+	}
+	return nil
+}
+
+func (s *service) AddComment(comment models.Comment) (int, error) {
+	query := `INSERT INTO comment (Text, Date, UserId, PostId) VALUES (?, ?, ?, ?)`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result, err := s.db.ExecContext(
+		ctx,
+		query,
+		comment.Text,
+		comment.Date,
+		comment.UserId,
+		comment.PostId,
+	)
+	if err != nil {
+		return -1, fmt.Errorf("could not insert comment: %v", err)
+	}
+	commentId, err := result.LastInsertId()
+	if err != nil {
+		return -1, fmt.Errorf("could not retrieve comment id: %v", err)
+	}
+	return int(commentId), nil
+}
+
+func (s *service) GetPostComments(postId int) ([]models.Comment, error) {
+	query := `SELECT CommentId, Text, Date, UserId, PostId FROM comment WHERE PostId = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	rows, err := s.db.QueryContext(ctx, query, postId)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve comments: %v", err)
+	}
+	defer rows.Close()
+
+	var comments []models.Comment
+	for rows.Next() {
+		var comment models.Comment
+		err := rows.Scan(
+			&comment.CommentId,
+			&comment.Text,
+			&comment.Date,
+			&comment.UserId,
+			&comment.PostId,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("could not scan comment: %v", err)
+		}
+		comments = append(comments, comment)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over comments: %v", err)
+	}
+	return comments, nil
 }

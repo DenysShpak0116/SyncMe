@@ -201,10 +201,30 @@ func GetAuthorByIdFunc(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		comments, err := dbService.GetPostComments(post.PostId)
+		if err != nil {
+			http.Error(w, "Cannot retrieve comments: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		resultComments := []dto.Comment{}
+		for _, comment := range comments {
+			user, err := dbService.GetUserById(comment.UserId)
+			if err != nil {
+				http.Error(w, "Cannot retrieve user: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+			resultComments = append(resultComments, dto.Comment{
+				Text:	 comment.Text,
+				UserName: user.Username,
+				Date:    comment.Date.Format("2006-01-02 15:04:05"),
+			})
+		}
+
 		resultPosts = append(resultPosts, dto.Post{
 			Post:   post,
 			Photos: photos,
 			Videos: videos,
+			Comments: resultComments,
 		})
 	}
 
@@ -216,4 +236,38 @@ func GetAuthorByIdFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(authorDTO)
+}
+
+func AddCommentFunc(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		PostId int    `json:"post_id"`
+		UserId int    `json:"user_id"`
+		Text   string `json:"text"`
+	}
+
+	if err := render.Decode(r, &body); err != nil {
+		http.Error(w, "Cannot decode: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	comment := models.Comment{
+		PostId: body.PostId,
+		UserId: body.UserId,
+		Text:   body.Text,
+	}
+
+	dbService := database.Instance()
+	commentId, err := dbService.AddComment(comment)
+	if err != nil {
+		http.Error(w, "Cannot add comment: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	response := map[string]interface{}{
+		"message":    "Comment added successfully",
+		"comment_id": commentId,
+	}
+	json.NewEncoder(w).Encode(response)
 }
