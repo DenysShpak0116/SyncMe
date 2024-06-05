@@ -16,5 +16,5 @@ func RegisterAuthRoutes(r chi.Router) {
 		r.Get("/logout/{provider}", controllers.LogoutFunction)
 	})
 
-	r.Get("/validate", middleware.RequireAuth(controllers.Validate))
+	r.Post("/validate", middleware.RequireAuth(controllers.Validate))
 }

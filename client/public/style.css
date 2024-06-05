@@ -753,6 +753,7 @@ input{
     border: 1px solid black;
     border-radius: 25px;
     padding: 25px;
+    margin-bottom: 25px;
 }
 .group-head-img{
     width: 150px;
@@ -770,6 +771,7 @@ input{
     align-items: center;
     gap: 30px;
     margin-bottom: 30px;
+    justify-content: center;
 }
 .head-name{
     color: #D3B3E9;
@@ -792,19 +794,24 @@ input{
     padding: 5px 15px;
     border-radius: 10px;
     background: #735888;
+    cursor: pointer;
 }
 .group-authors{
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
 }
 .author{
     display: flex;
     align-items: center;
-    width: 50%;
+    width: 49%;
+    margin-bottom: 30px;
     gap: 10px;
     padding: 15px;
     border-radius: 20px;
     border: 1px solid #6B4487;
+    background-color: #6B4487;
+    opacity: .9;
 }
 .author-img{
     width: 80px;
@@ -816,4 +823,31 @@ input{
 .author-img img{
     width: 100%;
     height: 100%;
+}
+.author-name{
+    color: #D3B3E9;
+    text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.65);
+    font-family: Inter;
+    font-size: 30px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+.post-like-count{
+    color: #936CB0;
+    text-align: center;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: normal;
+    cursor: pointer;
+}
+.post-text{
+    color: #9f79bd;
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: normal;
+    margin: 15px 0;
+    padding: 0 30px;
 }

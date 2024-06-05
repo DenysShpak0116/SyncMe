@@ -3,10 +3,10 @@
         <div class="post-head">
             <div class = "post-head-left-block">
               <div class="post-logo-img">
-                <img src="../assets/logouser.jpg" alt="Logo">
+                <img :src="author?.AuthorImage" alt="Logo">
               </div>
               <p class="post-head-name">
-                Mikio Ikemoto
+                {{ author?.Name }} from {{ author?.SocialMedia  }}
               </p>
             </div>
             <div class = "post-head-right-block">
@@ -15,7 +15,7 @@
                 <p>75%</p>
               </div>
               <p class="post-head-date">
-                01.05.2024
+                {{ info?.date?.slice(0,10) }}
               </p>
               <div class="post-head-delete">
                 <svg width="25" height="25" viewBox="0 0 39 36" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -32,7 +32,10 @@
             </div>
           </div>
           <div class="post-img">
-              <img src="../assets/logouser.jpg" alt="img">
+              <img v-if="info?.photos" :src="getImg(info?.photos)" alt="img">
+          </div>
+          <div class="post-text">
+              <p>{{ info?.textContent }}</p>
           </div>
           <div class="post-functions">
             <div class="post-like">
@@ -40,6 +43,7 @@
               <rect x="20" y="50" width="50" height="10" rx="5" transform="rotate(-90 20 50)" fill="#5E3B76"/>
               <rect y="20" width="50" height="10" rx="5" fill="#5E3B76"/>
               </svg>
+              <p class="post-like-count">{{ info?.countOfLikes }}</p>
             </div>
             <div class="post-comment">
               <input type="text" v-model="comment" placeholder="Write a comment...">
@@ -85,7 +89,7 @@
                 </div>
                 <div class="post-comment-text">
                   <p>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Nam dolorem esse necessitatibus natus repellendus, sunt provident sequi modi? Ipsa eum facere, accusantium, aliquid voluptatibus rerum at sequi explicabo laborum mollitia repudiandae, laudantium hic beatae delectus nisi eaque. Dicta nesciunt voluptate ipsam commodi? Animi, molestiae. Totam, neque. Pariatur libero nulla natus!
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
                   </p>
                 </div>
                 <div class="post-comment-functions">
@@ -109,7 +113,7 @@
                 </svg>
               </div>
             </div>
-            <div class="post-comment-block notVisible">
+            <div :class="comentStyle">
               <div class="post-comment-img-block">
                 <div class="post-comment-img">
                   <img src="../assets/logouser.jpg" alt="Logo">
@@ -126,7 +130,7 @@
                 </div>
                 <div class="post-comment-text">
                   <p>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Nam dolorem esse necessitatibus natus repellendus, sunt provident sequi modi? Ipsa eum facere, accusantium, aliquid voluptatibus rerum at sequi explicabo laborum mollitia repudiandae, laudantium hic beatae delectus nisi eaque. Dicta nesciunt voluptate ipsam commodi? Animi, molestiae. Totam, neque. Pariatur libero nulla natus!
+                    Nam dolorem esse necessitatibus natus repellendus, sunt provident sequi modi? Ipsa eum facere, accusantium, aliquid voluptatibus rerum at sequi explicabo laborum mollitia repudiandae, laudantium hic beatae delectus nisi eaque. Dicta nesciunt voluptate ipsam commodi? Animi, molestiae. Totam, neque. Pariatur libero nulla natus!
                   </p>
                 </div>
                 <div class="post-comment-functions">
@@ -150,11 +154,12 @@
                 </svg>
               </div>
             </div>
-            <button class="see-more">
+            <button class="see-more" @click = "more">
               See more ▽
             </button>
           </div>
     </div>
+    {{ console.log(info) }}
   </template>
 
 <script>
@@ -162,11 +167,31 @@ export default {
   name: 'PostC',
   data(){
         return{
-          comment:""
+          comment:"",
+          comentStyle:['post-comment-block','notVisible']
         }
   },
+  props: {
+    info:{
+      type: Object
+    },
+    author:{
+      type: Object
+    }
+  },
   methods:{
+    more(e){
+      e.target.style.display = 'none'
+      this.comentStyle = ['post-comment-block']
+    },
+    getImg(arr){
+      if(arr == null){
+        return null;
+      }else{
+        return arr[0].url;
+      }
+    }
+  },
     
-  }
 }
 </script>

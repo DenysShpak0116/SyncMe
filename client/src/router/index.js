@@ -7,6 +7,7 @@ import Chat from '../components/Chat.vue'
 import Groups from '../components/Groups.vue'
 import Profile from '../components/Profile.vue'
 import Group from '../components/Group.vue'
+import CreateGroup from '../components/CreateGroup.vue'
 
 const router = createRouter({
     history:createWebHashHistory(),
@@ -45,6 +46,11 @@ const router = createRouter({
             path: '/group/:id',
             name: 'group',
             component: Group
+        },
+        {
+            path: '/createGroup',
+            name: 'createGroup',
+            component: CreateGroup
         },
     ]
 })

@@ -1,15 +1,20 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
+	"server/dto"
 	"server/internal/database"
 	"server/models"
+	"strconv"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	twitterscraper "github.com/n0madic/twitter-scraper"
 )
@@ -43,13 +48,13 @@ func AddAuthorFunc(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	response := map[string]interface{}{
 		"message": "Author added successfully",
-		"author": author,
+		"author":  author,
 	}
 	json.NewEncoder(w).Encode(response)
 }
 
 func addXAuthor(link string, groupId int) (models.Author, error) {
-	regularExpression := regexp.MustCompile(`^https://x.com/[a-zA-Z0-9]+$`)
+	regularExpression := regexp.MustCompile(`^https://x.com/[a-zA-Z0-9_]+$`)
 	if !regularExpression.MatchString(link) {
 		return models.Author{}, fmt.Errorf("Invalid link")
 	}
@@ -59,13 +64,13 @@ func addXAuthor(link string, groupId int) (models.Author, error) {
 	twitterUsername := os.Getenv("TWITTER_USERNAME")
 	twitterPassword := os.Getenv("TWITTER_PASSWORD")
 	scraper := twitterscraper.New()
-    err := scraper.Login(twitterUsername, twitterPassword)
+	err := scraper.Login(twitterUsername, twitterPassword)
 	defer scraper.Logout()
 	if err != nil {
 		return models.Author{}, err
 	}
 
-    profile, err := scraper.GetProfile(userName)
+	profile, err := scraper.GetProfile(userName)
 	if err != nil {
 		return models.Author{}, err
 	}
@@ -83,6 +88,42 @@ func addXAuthor(link string, groupId int) (models.Author, error) {
 	authorId, err := dbService.AddAuthor(author)
 	if err != nil {
 		return models.Author{}, err
+	}
+
+	for tweet := range scraper.GetTweets(context.Background(), userName, 50) {
+		if tweet.Error != nil {
+			log.Println(tweet.Error)
+		}
+		postId, err := dbService.AddPost(models.Post{
+			AuthorId:            authorId,
+			TextContent:         tweet.Text,
+			Date:                tweet.TimeParsed,
+			CountOfLikes:        0,
+			EmotionalAnalysisId: 1,
+		})
+		if err != nil {
+			return models.Author{}, err
+		}
+
+		for _, photo := range tweet.Photos {
+			_, err = dbService.AddPhoto(models.XPhoto{
+				URL:    photo.URL,
+				PostId: postId,
+			})
+			if err != nil {
+				return models.Author{}, err
+			}
+		}
+
+		for _, video := range tweet.Videos {
+			_, err = dbService.AddVideo(models.XVideo{
+				URL:    video.URL,
+				PostId: postId,
+			})
+			if err != nil {
+				return models.Author{}, err
+			}
+		}
 	}
 
 	author.AuthorId = authorId
@@ -116,6 +157,117 @@ func GetAuthorsFunc(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"group":   group,
 		"authors": authors,
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+func GetAuthorByIdFunc(w http.ResponseWriter, r *http.Request) {
+	authorId := chi.URLParam(r, "id")
+	if authorId == "" {
+		http.Error(w, "Author ID is required", http.StatusBadRequest)
+		return
+	}
+
+	id, err := strconv.Atoi(authorId)
+	if err != nil {
+		http.Error(w, "Invalid author ID", http.StatusBadRequest)
+		return
+	}
+
+	dbService := database.Instance()
+	author, err := dbService.GetAuthorById(id)
+	if err != nil {
+		http.Error(w, "Cannot retrieve author: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	posts, err := dbService.GetPostsByAuthorId(id)
+	if err != nil {
+		http.Error(w, "Cannot retrieve posts: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var resultPosts []dto.Post
+	for _, post := range posts {
+		photos, err := dbService.GetPhotosByPostId(post.PostId)
+		if err != nil {
+			http.Error(w, "Cannot retrieve photos: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		videos, err := dbService.GetVideosByPostId(post.PostId)
+		if err != nil {
+			http.Error(w, "Cannot retrieve videos: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		comments, err := dbService.GetPostComments(post.PostId)
+		if err != nil {
+			http.Error(w, "Cannot retrieve comments: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		resultComments := []dto.Comment{}
+		for _, comment := range comments {
+			user, err := dbService.GetUserById(comment.UserId)
+			if err != nil {
+				http.Error(w, "Cannot retrieve user: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+			resultComments = append(resultComments, dto.Comment{
+				Text:     comment.Text,
+				UserName: user.Username,
+				Date:     comment.Date.Format("2006-01-02 15:04:05"),
+			})
+		}
+
+		resultPosts = append(resultPosts, dto.Post{
+			Post:     post,
+			Photos:   photos,
+			Videos:   videos,
+			Comments: resultComments,
+		})
+	}
+
+	authorDTO := dto.Author{
+		Author: *author,
+		Posts:  resultPosts,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(authorDTO)
+}
+
+func AddCommentFunc(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		PostId int    `json:"post_id"`
+		UserId int    `json:"user_id"`
+		Text   string `json:"text"`
+	}
+
+	if err := render.Decode(r, &body); err != nil {
+		http.Error(w, "Cannot decode: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	comment := models.Comment{
+		PostId: body.PostId,
+		UserId: body.UserId,
+		Text:   body.Text,
+	}
+
+	dbService := database.Instance()
+	commentId, err := dbService.AddComment(comment)
+	if err != nil {
+		http.Error(w, "Cannot add comment: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	response := map[string]interface{}{
+		"message":    "Comment added successfully",
+		"comment_id": commentId,
 	}
 	json.NewEncoder(w).Encode(response)
 }

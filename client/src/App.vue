@@ -2,7 +2,7 @@
   <div class = "wrapper">
     <Header :logged = "isLogged" @logout = "logout"></Header>
     <main class="main">
-      <router-view @reg = "reg"></router-view>
+      <router-view @reg = "regF"></router-view>
     </main>
     <Footer></Footer>
   </div>
@@ -23,7 +23,7 @@ export default {
         }
   },
   methods:{
-    reg(token){
+    regF(token){
       this.isLogged = token;
     },
     logout(){

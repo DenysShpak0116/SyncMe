@@ -2,21 +2,22 @@
     <div class="post">
       <div class="container">
         <div class="posts-wrapper">
-          <Post></Post>
-          <Post></Post>
-          <Post></Post>
+          <Post :author="posts" :info="el" v-for="el in posts.posts" :key = "el.PostId"></Post>
         </div>
       </div>
     </div>
+    <PreLoader :isLoading = "load" />
   </template>
 
 <script>
+import PreLoader from '../components/PreLoader.vue'
 import Post from '../components/Post.vue'
 
 export default {
   name: 'MainC',
   components: {
-    Post
+    Post,
+    PreLoader
   },
   data(){
         return{
@@ -25,7 +26,7 @@ export default {
         }
   },
   created() {
-    // this.validateToken();
+    this.$store.dispatch('getPosts',9)
   },
   methods:{
     async validateToken() {
@@ -44,6 +45,14 @@ export default {
       } catch (error) {
         console.error('Error:', error);
       }
+    },
+  },
+  computed:{
+    posts(){
+        return this.$store.getters.getPosts1
+    },
+    load(){
+        return this.$store.getters.getLoad
     },
   }
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/markbates/goth/gothic"
+	"server/internal/utils"
 )
 
 func GetAuthCallbackFuntion(w http.ResponseWriter, r *http.Request) {
@@ -80,14 +81,22 @@ func GetAuthCallbackFuntion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newUser *models.User
+	bgLink, err := utils.GetRandomPhoto()
+	if err != nil {
+		http.Error(w, "Cannot get random photo: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	err = dbService.AddUser(models.User{
 		Username:  user.NickName,
 		Email:     user.Email,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Country:   user.Location,
-		Sex:       "Other",
+		Sex: 	   "Other",
 		Role:      "user",
+		Logo:      user.AvatarURL,
+		BgImage:   bgLink,
 	})
 	if err != nil {
 		http.Error(w, "Cannot add user: "+err.Error(), http.StatusInternalServerError)
@@ -212,7 +221,17 @@ func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Cannot hash password: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	bgLink, err := utils.GetRandomPhoto()
+	if err != nil {
+		http.Error(w, "Cannot get random photo: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	logoLink, err := utils.GetRandomPhoto()
+	if err != nil {
+		http.Error(w, "Cannot get random photo: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 	user := models.User{
 		Username:  body.Username,
 		Password:  hash,
@@ -222,6 +241,8 @@ func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 		Sex:       body.Sex,
 		Country:   body.Country,
 		Role:      "user",
+		Logo:      logoLink,
+		BgImage:   bgLink,
 	}
 	fmt.Println(user)
 
@@ -290,18 +311,20 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Validate(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+    w.Header().Set("Content-Type", "application/json")
 
-	user := r.Context().Value("user").(*models.User)
-	cookie, _ := r.Cookie("jwt-token")
-	response := map[string]interface{}{
-		"message": "Token is valid",
-		"Token":   cookie.Value,
-		"user":    user,
-	}
+    user, ok := r.Context().Value("user").(*models.User)
+    if !ok || user == nil {
+        http.Error(w, "User not found in context", http.StatusInternalServerError)
+        return
+    }
 
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Cannot encode response: "+err.Error(), http.StatusInternalServerError)
-	}
+    response := map[string]interface{}{
+        "message": "Token is valid",
+        "user":    user,
+    }
+
+    if err := json.NewEncoder(w).Encode(response); err != nil {
+        http.Error(w, "Cannot encode response: "+err.Error(), http.StatusInternalServerError)
+    }
 }
