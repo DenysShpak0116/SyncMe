@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"server/internal/database"
 	"server/models"
@@ -21,7 +22,6 @@ func AddMessageFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Add message to database
 	dbService := database.Instance()
 	message := models.Message{
 		Text:       body.MessageText,
@@ -35,7 +35,57 @@ func AddMessageFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.JSON(w, r, map[string]interface{}{
+	response := map[string]interface{}{
 		"message_id": messageId,
-	})
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+func GetMessageFunc(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		DisscusserId  int `json:"disscusser_id"`
+		CurrentUserId int `json:"current_user_id"`
+	}
+	if err := render.Decode(r, &body); err != nil {
+		http.Error(w, "Cannot decode: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	dbService := database.Instance()
+
+	chat, err := dbService.GetChat(body.DisscusserId, body.CurrentUserId)
+	if err != nil {
+		http.Error(w, "Cannot get chat: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"chat": chat,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+func DeleteMessageFunc(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		MessageId int `json:"message_id"`
+	}
+	if err := render.Decode(r, &body); err != nil {
+		http.Error(w, "Cannot decode: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	dbService := database.Instance()
+	err := dbService.DeleteMessage(body.MessageId)
+	if err != nil {
+		http.Error(w, "Cannot delete message: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"message_id": body.MessageId,
+	}
+
+	json.NewEncoder(w).Encode(response)
 }
