@@ -1,0 +1,9 @@
+build:
+  languages:
+    - go
+  scripts:
+    - cd client && npm install && npm run build
+    - cd server && go build -o server ./cmd/api/main.go
+
+run:
+  web: ./server
