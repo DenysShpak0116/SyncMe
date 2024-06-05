@@ -214,16 +214,16 @@ func GetAuthorByIdFunc(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			resultComments = append(resultComments, dto.Comment{
-				Text:	 comment.Text,
+				Text:     comment.Text,
 				UserName: user.Username,
-				Date:    comment.Date.Format("2006-01-02 15:04:05"),
+				Date:     comment.Date.Format("2006-01-02 15:04:05"),
 			})
 		}
 
 		resultPosts = append(resultPosts, dto.Post{
-			Post:   post,
-			Photos: photos,
-			Videos: videos,
+			Post:     post,
+			Photos:   photos,
+			Videos:   videos,
 			Comments: resultComments,
 		})
 	}
