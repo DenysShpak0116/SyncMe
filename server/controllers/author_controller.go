@@ -52,193 +52,135 @@ func AddAuthorFunc(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// func addXAuthor(link string, groupId int) (models.Author, error) {
-// 	regularExpression := regexp.MustCompile(`^https://x.com/[a-zA-Z0-9_]+$`)
-// 	if !regularExpression.MatchString(link) {
-// 		return models.Author{}, fmt.Errorf("Invalid link")
-// 	}
-
-// 	userName := strings.Split(link, "/")[3]
-
-// 	twitterUsername := os.Getenv("TWITTER_USERNAME")
-// 	twitterPassword := os.Getenv("TWITTER_PASSWORD")
-// 	twtterTFA := os.Getenv("TWITTER_SECRET_KEY")
-// 	scraper := twitterscraper.New()
-// 	err := scraper.Login(twitterUsername, twitterPassword, twtterTFA)
-// 	defer scraper.Logout()
-// 	if err != nil {
-// 		return models.Author{}, err
-// 	}
-
-// 	profile, err := scraper.GetProfile(userName)
-// 	if err != nil {
-// 		return models.Author{}, err
-// 	}
-
-// 	author := models.Author{
-// 		Name:                  profile.Name,
-// 		Username:              profile.Username,
-// 		SocialMedia:           "X",
-// 		AuthorImage:           strings.ReplaceAll(profile.Avatar, "normal", "400x400"),
-// 		AuthorBackgroundImage: profile.Banner,
-// 		GroupId:               groupId,
-// 	}
-
-// 	dbService := database.Instance()
-// 	authorId, err := dbService.AddAuthor(author)
-// 	if err != nil {
-// 		return models.Author{}, err
-// 	}
-
-// 	for tweet := range scraper.GetTweets(context.Background(), userName, 50) {
-// 		if tweet.Error != nil {
-// 			log.Println(tweet.Error)
-// 		}
-// 		emotionalAnalysisId, err := services.CreateEmotionalAnalysis(tweet.Text)
-// 		postId, err := dbService.AddPost(models.Post{
-// 			AuthorId:            authorId,
-// 			TextContent:         tweet.Text,
-// 			Date:                tweet.TimeParsed,
-// 			CountOfLikes:        0,
-// 			EmotionalAnalysisId: emotionalAnalysisId,
-// 		})
-// 		if err != nil {
-// 			return models.Author{}, err
-// 		}
-
-// 		for _, photo := range tweet.Photos {
-// 			_, err = dbService.AddPhoto(models.XPhoto{
-// 				URL:    photo.URL,
-// 				PostId: postId,
-// 			})
-// 			if err != nil {
-// 				return models.Author{}, err
-// 			}
-// 		}
-
-// 		for _, video := range tweet.Videos {
-// 			_, err = dbService.AddVideo(models.XVideo{
-// 				URL:    video.URL,
-// 				PostId: postId,
-// 			})
-// 			if err != nil {
-// 				return models.Author{}, err
-// 			}
-// 		}
-// 	}
-
-// 	author.AuthorId = authorId
-
-// 	return author, nil
-// }
-
 func addXAuthor(link string, groupId int) (models.Author, error) {
-	regularExpression := regexp.MustCompile(`^https://x.com/[a-zA-Z0-9_]+$`)
-	if !regularExpression.MatchString(link) {
-		return models.Author{}, fmt.Errorf("Invalid link")
-	}
+    regularExpression := regexp.MustCompile(`^https://x.com/[a-zA-Z0-9_]+$`)
+    if !regularExpression.MatchString(link) {
+        return models.Author{}, fmt.Errorf("Invalid link")
+    }
 
-	userName := strings.Split(link, "/")[3]
+    userName := strings.Split(link, "/")[3]
+    client := &http.Client{Timeout: 10 * time.Second}
 
-	url := "https://twitter154.p.rapidapi.com/user/details?username=" + userName
+    // Fetch user details
+    userDetailsURL := "https://twitter154.p.rapidapi.com/user/details?username=" + userName
+    req, err := http.NewRequest("GET", userDetailsURL, nil)
+    if err != nil {
+        return models.Author{}, err
+    }
+    req.Header.Add("x-rapidapi-key", "4780938895msh64888601af59894p1ad53ejsn1a0ae27d979f")
+    req.Header.Add("x-rapidapi-host", "twitter154.p.rapidapi.com")
 
-	req, _ := http.NewRequest("GET", url, nil)
+    res, err := client.Do(req)
+    if err != nil {
+        return models.Author{}, err
+    }
+    defer res.Body.Close()
 
-	req.Header.Add("x-rapidapi-key", "4780938895msh64888601af59894p1ad53ejsn1a0ae27d979f")
-	req.Header.Add("x-rapidapi-host", "twitter154.p.rapidapi.com")
+    var body struct {
+        Name                  string `json:"name"`
+        UserName              string `json:"username"`
+        AuthorImage           string `json:"profile_pic_url"`
+        AuthorBackgroundImage string `json:"profile_banner_url"`
+    }
 
-	res, _ := http.DefaultClient.Do(req)
+    if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
+        return models.Author{}, err
+    }
 
-	defer res.Body.Close()
+    author := models.Author{
+        Name:                  body.Name,
+        Username:              body.UserName,
+        SocialMedia:           "X",
+        AuthorImage:           strings.ReplaceAll(body.AuthorImage, "normal", "400x400"),
+        AuthorBackgroundImage: body.AuthorBackgroundImage,
+        GroupId:               groupId,
+    }
 
-	var body struct {
-		Name                  string `json:"name"`
-		UserName              string `json:"username"`
-		AuthorImage           string `json:"profile_pic_url"`
-		AuthorBackgroundImage string `json:"profile_banner_url"`
-	}
+    dbService := database.Instance()
+    authorId, err := dbService.AddAuthor(author)
+    if err != nil {
+        return models.Author{}, err
+    }
 
-	json.NewDecoder(res.Body).Decode(&body)
+    // Fetch user tweets
+    tweetsURL := "https://twitter154.p.rapidapi.com/user/tweets?username=" + userName + "&limit=10&include_replies=false"
+    req, err = http.NewRequest("GET", tweetsURL, nil)
+    if err != nil {
+        return models.Author{}, err
+    }
+    req.Header.Add("x-rapidapi-key", "4780938895msh64888601af59894p1ad53ejsn1a0ae27d979f")
+    req.Header.Add("x-rapidapi-host", "twitter154.p.rapidapi.com")
 
-	author := models.Author{
-		Name:                  body.Name,
-		Username:              body.UserName,
-		SocialMedia:           "X",
-		AuthorImage:           strings.ReplaceAll(body.AuthorImage, "normal", "400x400"),
-		AuthorBackgroundImage: body.AuthorBackgroundImage,
-		GroupId:               groupId,
-	}
+    res, err = client.Do(req)
+    if err != nil {
+        return models.Author{}, err
+    }
+    defer res.Body.Close()
 
-	dbService := database.Instance()
-	authorId, err := dbService.AddAuthor(author)
-	if err != nil {
-		return models.Author{}, err
-	}
+    var resultTwits struct {
+        Results []struct {
+            Text         string `json:"text"`
+            CreationDate string `json:"creation_date"`
+            Media        []string `json:"media_url"`
+            Video []struct {
+                URL string `json:"url"`
+            } `json:"video_url"`
+        } `json:"results"`
+    }
 
-	var resultTwits struct {
-		Results []struct {
-			Text         string `json:"text"`
-			CreationDate string `json:"creation_date"`
-			Media        []struct {
-				URL string `json:"url"`
-			} `json:"media"`
-			Video []struct {
-				URL string `json:"url"`
-			} `json:"video"`
-		} `json:"results"`
-	}
+    if err := json.NewDecoder(res.Body).Decode(&resultTwits); err != nil {
+        return models.Author{}, fmt.Errorf("error decoding JSON: %v", err)
+    }
 
-	url = "https://twitter154.p.rapidapi.com/user/tweets?username=" + userName + "&limit=10&nclude_replies=false&include_pinned=false"
-
-	req, _ = http.NewRequest("GET", url, nil)
-
-	req.Header.Add("x-rapidapi-key", "4780938895msh64888601af59894p1ad53ejsn1a0ae27d979f")
-	req.Header.Add("x-rapidapi-host", "twitter154.p.rapidapi.com")
-
-	res, _ = http.DefaultClient.Do(req)
-
-	defer res.Body.Close()
-
-	json.NewDecoder(res.Body).Decode(&resultTwits)
-
-	for _, tweet := range resultTwits.Results {
-		time, _ := time.Parse(time.RubyDate, tweet.CreationDate)
-		emotionalAnalysisId, err := services.CreateEmotionalAnalysis(tweet.Text)
-		postId, err := dbService.AddPost(models.Post{
-			AuthorId:            authorId,
-			TextContent:         tweet.Text,
-			Date:                time,
-			CountOfLikes:        0,
-			EmotionalAnalysisId: emotionalAnalysisId,
-		})
-		if err != nil {
-			return models.Author{}, err
+    // Отладочная информация для декодированных твитов
+    fmt.Printf("Decoded tweets: %+v\n", resultTwits)
+	iterator := 0
+    for _, tweet := range resultTwits.Results {
+		if iterator >= 10 {
+			break;
 		}
+        tweetTime, err := time.Parse(time.RFC1123Z, tweet.CreationDate)
+        if err != nil {
+            return models.Author{}, fmt.Errorf("error parsing date: %v", err)
+        }
 
-		for _, photo := range tweet.Media {
-			_, err = dbService.AddPhoto(models.XPhoto{
-				URL:    photo.URL,
-				PostId: postId,
-			})
-			if err != nil {
-				return models.Author{}, err
-			}
-		}
+        // Отладочная информация для каждого твита
+        fmt.Printf("Processing tweet: %s\n", tweet.Text)
 
-		for _, video := range tweet.Video {
-			_, err = dbService.AddVideo(models.XVideo{
-				URL:    video.URL,
-				PostId: postId,
-			})
-			if err != nil {
-				return models.Author{}, err
-			}
-		}
-	}
+        emotionalAnalysisId, err := services.CreateEmotionalAnalysis(tweet.Text)
+        if err != nil {
+            return models.Author{}, fmt.Errorf("error creating emotional analysis: %v", err)
+        }
 
-	author.AuthorId = authorId
+        postId, err := dbService.AddPost(models.Post{
+            AuthorId:            authorId,
+            TextContent:         tweet.Text,
+            Date:                tweetTime,
+            CountOfLikes:        0,
+            EmotionalAnalysisId: emotionalAnalysisId,
+        })
+        if err != nil {
+            return models.Author{}, fmt.Errorf("error adding post: %v", err)
+        }
 
-	return author, nil
+        for _, photo := range tweet.Media {
+            fmt.Printf("Processing photo: %s\n", photo)
+            if _, err := dbService.AddPhoto(models.XPhoto{URL: photo, PostId: postId}); err != nil {
+                return models.Author{}, fmt.Errorf("error adding photo: %v", err)
+            }
+        }
+
+        for _, video := range tweet.Video {
+            fmt.Printf("Processing video: %s\n", video.URL)
+            if _, err := dbService.AddVideo(models.XVideo{URL: video.URL, PostId: postId}); err != nil {
+                return models.Author{}, fmt.Errorf("error adding video: %v", err)
+            }
+        }
+		iterator++
+    }
+
+    author.AuthorId = authorId
+    return author, nil
 }
 
 func GetAuthorsFunc(w http.ResponseWriter, r *http.Request) {

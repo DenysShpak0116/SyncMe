@@ -28,7 +28,7 @@ func CreateEmotionalAnalysis(postText string) (int, error) {
 		genai.Text("Analyze this text. write the percentage of positivity it evokes from 0 to 100. Write only a number between 0 and 100 and percent char. No more text is needed.\nHere is the text of the post:\n\n"+postText+"\n\n"),
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	re := regexp.MustCompile(`\d{2,3}%`)
