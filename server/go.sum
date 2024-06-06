@@ -115,6 +115,8 @@ github.com/jarcoal/httpmock v1.0.4 h1:jp+dy/+nonJE4g4xbVtl9QdrUNbn6/3hDT5R4nDIZn
 github.com/jarcoal/httpmock v1.0.4/go.mod h1:ATjnClrvW/3tijVmpL/va5Z3aAyGvqU3gCT8nX0Txik=
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
 github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
+github.com/liqpay/go-sdk v0.0.0-20200913160121-a6f81f822598 h1:TVAJasuKNOkOpZO9ZKjxse1wJKnQWoXCq2yt33wm2nU=
+github.com/liqpay/go-sdk v0.0.0-20200913160121-a6f81f822598/go.mod h1:0Ym3j8JybUjpZ7xqkMzajalVLZ+XEWGBkcur7zvXgms=
 github.com/markbates/goth v1.79.0 h1:fUYi9R6VubVEK2bpmXvIUp7xRcxA68i8ovfUQx/i5Qc=
 github.com/markbates/goth v1.79.0/go.mod h1:RBD+tcFnXul2NnYuODhnIweOcuVPkBohLfEvutPekcU=
 github.com/markbates/goth v1.80.0 h1:NnvatczZDzOs1hn9Ug+dVYf2Viwwkp/ZDX5K+GLjan8=

@@ -30,7 +30,7 @@ func (s *service) AddEmotionalAnalysis(emotionalAnalysis models.EmotionalAnalysi
 }
 
 func (s *service) GetEmotionalAnalysisById(id int) (*models.EmotionalAnalysis, error) {
-	query := `SELECT emotionalanalysisid, emotionalstate, emotionalIcon FROM emotionalanalysis WHERE id = ?`
+	query := `SELECT emotionalanalysisid, emotionalstate, emotionalIcon FROM emotionalanalysis WHERE emotionalanalysisid = ?`
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

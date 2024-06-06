@@ -10,5 +10,6 @@ func RegisterAuthorRoutes(r chi.Router) {
         r.Post("/add", controllers.AddAuthorFunc)
         r.Post("/get", controllers.GetAuthorsFunc)
         r.Get("/get/{id}",controllers.GetAuthorByIdFunc)
+        r.Post("/addcomment", controllers.AddCommentFunc)
     })
 }
