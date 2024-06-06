@@ -6,7 +6,8 @@ import (
 
 type Post struct {
 	models.Post
-	Photos   []models.XPhoto `json:"photos"`
-	Videos   []models.XVideo `json:"videos"`
-	Comments []Comment       `json:"comments"`
+	Photos            []models.XPhoto   `json:"photos"`
+	Videos            []models.XVideo   `json:"videos"`
+	Comments          []Comment         `json:"comments"`
+	EmotionalAnalysis EmotionalAnalysis `json:"emotionalAnalysis"`
 }

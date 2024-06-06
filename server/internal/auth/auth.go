@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"fmt"
 	"log"
 	"os"
+
 	// "path/filepath"
 
 	"github.com/gorilla/sessions"
@@ -21,35 +23,41 @@ const (
 )
 
 var Store *sessions.CookieStore
-
 func NewAuth() {
-	// projectDir, err := filepath.Abs("../../")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// envPath := filepath.Join(projectDir, ".env")
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+	if os.Getenv("ENV") != "production" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatalf("Error loading .env file (auth): %v", err)
+		}
 	}
+	
 
-	googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
-	googleSecret := os.Getenv("GOOGLE_SECRET")
+    googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
+    googleSecret := os.Getenv("GOOGLE_SECRET")
 
-	facebookClientID := os.Getenv("FACEBOOK_KEY")
-	facebookSecret := os.Getenv("FACEBOOK_SECRET")
+    facebookClientID := os.Getenv("FACEBOOK_KEY")
+    facebookSecret := os.Getenv("FACEBOOK_SECRET")
 
-	Store = sessions.NewCookieStore([]byte(key))
-	Store.MaxAge(MaxAge)
+    // Get the app base URL from the environment
+    baseURL := os.Getenv("BASE_URL")
+    if baseURL == "" {
+        log.Fatalf("BASE_URL not set")
+    }
 
-	Store.Options.Path = "/"
-	Store.Options.HttpOnly = true
-	Store.Options.Secure = IsProd
+    Store = sessions.NewCookieStore([]byte(key))
+    Store.MaxAge(MaxAge)
 
-	gothic.Store = Store
+    Store.Options.Path = "/"
+    Store.Options.HttpOnly = true
+    Store.Options.Secure = IsProd
 
-	goth.UseProviders(
-		google.New(googleClientID, googleSecret, "http://localhost:3000/auth/google/callback"),
-		facebook.New(facebookClientID, facebookSecret, "http://localhost:3000/auth/facebook/callback"),
-	)
+    gothic.Store = Store
+
+    googleCallbackURL := fmt.Sprintf("%s/auth/google/callback", baseURL)
+    facebookCallbackURL := fmt.Sprintf("%s/auth/facebook/callback", baseURL)
+
+    goth.UseProviders(
+        google.New(googleClientID, googleSecret, googleCallbackURL),
+        facebook.New(facebookClientID, facebookSecret, facebookCallbackURL),
+    )
 }

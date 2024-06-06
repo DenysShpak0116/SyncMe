@@ -6,5 +6,6 @@ import (
 
 type Author struct {
 	models.Author
-	Posts []Post `json:"posts"`
+	EmotionalAnalysis EmotionalAnalysis `json:"emotionalAnalysis"`
+	Posts             []Post            `json:"posts"`
 }

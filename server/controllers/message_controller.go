@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"server/internal/database"
 	"server/models"
+	"strconv"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 )
 
@@ -85,6 +87,27 @@ func DeleteMessageFunc(w http.ResponseWriter, r *http.Request) {
 
 	response := map[string]interface{}{
 		"message_id": body.MessageId,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+func GetChatsFunc(w http.ResponseWriter, r *http.Request) {
+	UserId, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	dbService := database.Instance()
+	chats, err := dbService.GetUserChats(UserId)
+	if err != nil {
+		http.Error(w, "Cannot get chats: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"chats": chats,
 	}
 
 	json.NewEncoder(w).Encode(response)

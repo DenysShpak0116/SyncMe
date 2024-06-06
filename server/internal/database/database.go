@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"server/dto"
 	"server/models"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -51,6 +52,13 @@ type Service interface {
 
 	AddComment(comment models.Comment) (int, error)
 	GetPostComments(postId int) ([]models.Comment, error)
+	
+	GetUserChats(userId int) ([]dto.Chat, error)
+
+	AddEmotionalAnalysis(emotionalAnalysis models.EmotionalAnalysis) (int, error)
+	GetEmotionalAnalysisById(id int) (*models.EmotionalAnalysis, error)
+	GetAuthorEmotionalAnalysis(authorId int) (*dto.EmotionalAnalysis, error)
+	GetGroupEmotionalAnalysis(groupId int) (*dto.EmotionalAnalysis, error)
 }
 
 type service struct {
@@ -736,4 +744,61 @@ func (s *service) GetPostComments(postId int) ([]models.Comment, error) {
 		return nil, fmt.Errorf("error iterating over comments: %v", err)
 	}
 	return comments, nil
+}
+
+func (s *service) GetUserChats(userId int) ([]dto.Chat, error) {
+	query := `SELECT DISTINCT UserFromId, UserToId FROM message WHERE UserFromId = ? OR UserToId = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	rows, err := s.db.QueryContext(ctx, query, userId, userId)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve chats: %v", err)
+	}
+	defer rows.Close()
+
+	var chats []dto.Chat
+	chatMap := make(map[int]bool) // Map to track unique chats
+	for rows.Next() {
+		var chat dto.Chat
+		var userFromId, userToId int
+		err := rows.Scan(
+			&userFromId,
+			&userToId,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("could not scan chat: %v", err)
+		}
+		// Check if the chat already exists in the map
+		if _, ok := chatMap[userFromId+userToId]; ok {
+			continue // Skip if chat already exists
+		}
+		chatMap[userFromId+userToId] = true // Add chat to the map
+		if userFromId == userId {
+			chat.UserId = userToId
+		} else {
+			chat.UserId = userFromId
+		}
+		chat.UserName, err = s.getUserName(chat.UserId)
+		if err != nil {
+			return nil, fmt.Errorf("could not get username: %v", err)
+		}
+		chats = append(chats, chat)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over chats: %v", err)
+	}
+	return chats, nil
+}
+
+func (s *service) getUserName(userId int) (string, error) {
+	query := `SELECT Username FROM user WHERE UserId = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	row := s.db.QueryRowContext(ctx, query, userId)
+	var username string
+	err := row.Scan(&username)
+	if err != nil {
+		return "", fmt.Errorf("could not get username: %v", err)
+	}
+	return username, nil
 }

@@ -60,7 +60,7 @@ export default createStore({
                 commit('setGroups',res)
                 commit('setLoad',false)
             } catch (error) {
-                console.error('Ошибка при получении данных:', error);
+                console.error('Помилка при отриманні даних:', error);
             }
         },
         async getAuthors({commit},payload){
@@ -78,7 +78,7 @@ export default createStore({
               res = await response.json()
               commit('setAuthors',res)
           } catch (error) {
-              console.error('Ошибка при получении данных:', error);
+              console.error('Помилка при отриманні даних:', error);
           }
           try {
             let arr = [];
@@ -94,7 +94,7 @@ export default createStore({
             commit('setPosts',arr)
             commit('setLoad',false)
           } catch (error) {
-              console.error('Ошибка при получении данных:', error);
+              console.error('Помилка при отриманні даних:', error);
           }
         },
         async getUserInfo({ commit }) {
