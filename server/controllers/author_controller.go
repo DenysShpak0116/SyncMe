@@ -327,6 +327,7 @@ func AddCommentFunc(w http.ResponseWriter, r *http.Request) {
 		PostId: body.PostId,
 		UserId: body.UserId,
 		Text:   body.Text,
+		Date: time.Now(),
 	}
 
 	dbService := database.Instance()
