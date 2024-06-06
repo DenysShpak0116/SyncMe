@@ -31,7 +31,7 @@ export default {
   methods:{
     async validateToken() {
       try {
-        const response = await fetch('http://localhost:3000/validate', {
+        const response = await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/validate', {
           method: 'POST',
           credentials: 'include',
         });

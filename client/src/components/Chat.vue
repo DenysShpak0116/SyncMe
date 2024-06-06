@@ -14,39 +14,13 @@
                     </div>
                     </div>
                     <div class="chat-users">
-                        <div class="chat-user">
+                        <div class="chat-user" @click = "chatClick(el.UserId,el.UserName)" v-for="el in chats.chats" :key="el.UserId">
                             <div class="chat-user-img">
                                 <img src="../assets/logouser.jpg" alt="Logo">
                             </div>
                             <div class="chat-user-info">
                                 <p class="chat-user-name">
-                                    @Jenya 
-                                </p>
-                                <p class="chat-user-text">
-                                    You: Here is the last message
-                                </p>
-                            </div>
-                        </div>
-                        <div class="chat-user">
-                            <div class="chat-user-img">
-                                <img src="../assets/logouser.jpg" alt="Logo">
-                            </div>
-                            <div class="chat-user-info">
-                                <p class="chat-user-name">
-                                    @Jenya
-                                </p>
-                                <p class="chat-user-text">
-                                    You: Here is the last message
-                                </p>
-                            </div>
-                        </div>
-                        <div class="chat-user">
-                            <div class="chat-user-img">
-                                <img src="../assets/logouser.jpg" alt="Logo">
-                            </div>
-                            <div class="chat-user-info">
-                                <p class="chat-user-name">
-                                    @Jenya
+                                    {{ el.UserName }}
                                 </p>
                                 <p class="chat-user-text">
                                     You: Here is the last message
@@ -61,7 +35,7 @@
                             <img src="../assets/logouser.jpg" alt="Logo">
                         </div>
                         <p class="chat-user-name">
-                            Jenya
+                            {{ name }}
                         </p>
                         <div class="chat-right-head-more">
                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="42" viewBox="0 0 13 48" fill="none">
@@ -72,29 +46,11 @@
                         </div>
                     </div>
                     <div class="chat-right-main">
-                        <div class="chat-right-messages">
-                            <div class="chat-message-block msg-left">
+                        <div class="chat-right-messages" ref="scroll">
+                            <div :class="getClass(e)" v-for="e in chat.chat" :key="e.MessageId">
                                 <div class="chat-right-message">
-                                    <p>Hello</p>
-                                    <p class="time">11:00 PM</p>
-                                </div>
-                            </div>
-                            <div class="chat-message-block msg-right">
-                                <div class="chat-right-message">
-                                    <p>Hello</p>
-                                    <p class="time">11:00 PM</p>
-                                </div>
-                            </div>
-                            <div class="chat-message-block msg-left">
-                                <div class="chat-right-message">
-                                    <p>Hello</p>
-                                    <p class="time">11:00 PM</p>
-                                </div>
-                            </div>
-                            <div class="chat-message-block msg-right">
-                                <div class="chat-right-message">
-                                    <p>Hello</p>
-                                    <p class="time">11:00 PM</p>
+                                    <p class="ctext">{{ e.Text }}</p>
+                                    <p class="time">{{ e.SentAt }}</p>
                                 </div>
                             </div>
                         </div>
@@ -112,7 +68,7 @@
                             </div>
                             <div class="message-input-block">
                                 <input type="text" v-model="message" placeholder="Write a message...">
-                                <div class="send-svg">
+                                <div class="send-svg" @click = "sendMsg()">
                                     <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                                     <rect width="26" height="26" fill="url(#pattern0_312_1104)"/>
                                     <defs>
@@ -136,16 +92,90 @@
   </template>
 
 <script>
+import { mapState } from 'vuex';
 export default {
   name: 'ChatC',
+  created() {
+    this.$store.dispatch('getMsgUsers',this.uInfo.userId)
+  },
   data(){
         return{
             chatSearch:"",
-            message:""
+            message:"",
+            left:"msg-left",
+            rigtht:"msg-right",
+            name:"User",
+            timeId:null
         }
   },
+  watch: {
+    messages(newMessages, oldMessages) {
+      if (newMessages.length !== oldMessages.length) {
+        this.$nextTick(() => {
+            this.scrollToElement()
+        });
+      }
+    }
+  },
+  unmounted(){
+    clearInterval(this.timeId);
+  },
   methods:{
-    
-  }
+    chatClick(e,a){
+        clearInterval(this.timeId);
+        localStorage.setItem("discusser",e)
+        this.$store.dispatch('getChat',{
+            disscusser_id:e,
+            current_user_id:this.uInfo.userId,
+        }) 
+        this.name = a
+        this.timeId = setInterval(() => {
+            console.log("sadsadasdas")
+            this.$store.dispatch('getChat',{
+            disscusser_id:e,
+            current_user_id:this.uInfo.userId,
+            }) 
+        }, 5000);
+    },
+    sendMsg(){
+        if(this.message != ""){
+            this.$store.dispatch('sendMsg',{
+                message_text:this.message,
+                sent_at:new Date(),
+                user_from_id:this.uInfo.userId,
+                user_to_id:localStorage.getItem("discusser")
+            }) 
+            this.message = ""
+            setTimeout(() =>{this.scrollToElement()},1500)
+        }
+    },
+    getClass(e){
+        if(e.UserFromId == localStorage.getItem("discusser")){
+            return ['chat-message-block','msg-left']
+        }else{
+            return ['chat-message-block','msg-right']
+        }
+    },
+    scrollToElement() {
+        const el = this.$refs.scroll;
+        if (el) {
+            el.scrollTop = el.scrollHeight;
+        }
+    }
+  },
+  computed:{
+    ...mapState({
+      messages: state => state.chat
+    }),
+  uInfo(){
+    return this.$store.getters?.getUserInfo1?.user
+  },
+  chats(){
+    return this.$store.getters?.getMsgUsers1
+  },
+  chat(){
+    return this.$store.getters?.getChat1
+  },
+}
 }
 </script>
