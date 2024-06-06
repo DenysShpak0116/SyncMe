@@ -39,6 +39,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	routes.RegisterGroupRoutes(r)
 	routes.RegisterAuthorRoutes(r)
 	routes.RegisterMessageRoutes(r)
+	routes.RegisterUserRoutes(r)
 	return r
 }
 

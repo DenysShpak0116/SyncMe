@@ -25,6 +25,7 @@ type Service interface {
 	GetUserByUsername(login string) (*models.User, error)
 	GetUserById(id int) (*models.User, error)
 	GetUserByEmail(email string) (*models.User, error)
+	ChangeUserRole(userId int, role string) error
 
 	AddGroup(group models.Group) (int, error)
 	GetAllGroups() []models.Group
@@ -801,4 +802,16 @@ func (s *service) getUserName(userId int) (string, error) {
 		return "", fmt.Errorf("could not get username: %v", err)
 	}
 	return username, nil
+}
+
+func (s *service) ChangeUserRole(userId int, role string) error {
+	query := `UPDATE user SET Role = ? WHERE UserId = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := s.db.ExecContext(ctx, query, role, userId)
+	if err != nil {
+		return fmt.Errorf("could not update user role: %v", err)
+	}
+	return nil
 }
