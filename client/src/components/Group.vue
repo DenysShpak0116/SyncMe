@@ -42,7 +42,6 @@ export default {
     PreLoader
   },
   created() {
-    
     this.$store.dispatch('getAuthors',this.id)
   },
   data(){
