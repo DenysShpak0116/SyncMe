@@ -40,7 +40,6 @@ export default {
     },
     async create(){
       let resArr = this.author.split(',')
-      console.log(resArr)
       try {
         const res = await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/groups/add', {
           method: 'POST',
@@ -56,21 +55,22 @@ export default {
         });
         let result = await res.json()
         console.log(result)
-        const res1 = await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/groups/add', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(
-            { 
-                name: this.name, 
-                description: this.description,
-                group_image: this.logo, 
-                group_background_image: this.image, 
-            }
-        )
-        });
+        for(let link of resArr){
+            const res1 = await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/authors/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(
+              { 
+                  author_link: link, 
+                  group_id: 1,
+              }
+          )
+          });
+          
+          let result1 = await res1.json()
+          console.log(result1)
+        }
         
-        let result1 = await res1.json()
-        console.log(result1)
         this.$router.push({name:'groups'})
       } catch (error) {
         // Handle error

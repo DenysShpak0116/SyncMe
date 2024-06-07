@@ -132,6 +132,7 @@ export default {
             disscusser_id:e,
             current_user_id:this.uInfo.userId,
             }) 
+            setTimeout(() =>{this.scrollToElement()},4000)
         }, 5000);
     },
     sendMsg(){
