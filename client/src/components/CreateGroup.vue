@@ -38,7 +38,7 @@ export default {
     },
     async create(){
       try {
-        await fetch('http://localhost:3000/groups/add', {
+        await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/groups/add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(

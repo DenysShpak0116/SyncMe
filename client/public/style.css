@@ -600,9 +600,7 @@ h1,h2,h3,h4,h5,h6,p{
     font-style: normal;
     font-weight: 400;
     line-height: normal;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
+    overflow-y: scroll;
 }
 .time{
     font-size: 10px;
@@ -623,10 +621,11 @@ h1,h2,h3,h4,h5,h6,p{
 }
 .chat-right-message{
     background: #5E3B76;
-    padding: 5px 60px 5px 10px;
-    display: inline-block;
+    padding: 10px 70px 10px 10px;
+    display: flex;
     margin-bottom: 15px;
     position: relative;
+    border-radius: 15px;
 }
 .chat-right-func{
     height: 50px;
@@ -635,6 +634,9 @@ h1,h2,h3,h4,h5,h6,p{
     display: flex;
     justify-content: space-around;
     align-items: center;
+}
+.ctext{
+    padding-right: 50px;
 }
 .message-input-block{
     position: relative;
@@ -850,4 +852,10 @@ input{
     line-height: normal;
     margin: 15px 0;
     padding: 0 30px;
+}
+.commentText{
+    word-wrap: break-word;
+}
+.nonev{
+    display: none;
 }

@@ -7,7 +7,10 @@ export default createStore({
     userInfo:[],
     load:false,
     name:localStorage.getItem("name"),
-    posts:[]
+    posts:[],
+    msgUsers:[],
+    chat:[],
+    msg:null
   },
   getters:{
     getGroups1(state){
@@ -27,7 +30,13 @@ export default createStore({
     },
     getPosts1(state){
       return state.posts
-    }
+    },
+    getMsgUsers1(state){
+      return state.msgUsers
+    },
+    getChat1(state){
+      return state.chat
+    },
   },
   mutations: {
     setGroups(state,payload){
@@ -47,13 +56,51 @@ export default createStore({
     },
     setPosts(state,payload){
       state.posts = payload
-    }
+    },
+    setMsgUsers(state,payload){
+      state.msgUsers = payload
+    },
+    setChat(state,payload){
+      state.chat = payload
+    },
+    sendMsg(state,payload){
+      state.msg = payload
+    },
+    addComment(state,payload){
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      if(Array.isArray(state.posts)){
+        for(let o of state.posts){
+          for(let post of o.posts){
+            if(post.postId == payload.postId){
+              post.comments.push({
+                date:`${year}-${month}-${day}`,
+                text:payload.text,
+                user_name:state.name,
+              })
+            }
+          }
+        }
+      }else{
+        for(let post of state.posts.posts){
+          if(post.postId == payload.postId){
+            post.comments.push({
+              date:`${year}-${month}-${day}`,
+              text:payload.text,
+              user_name:state.name,
+            })
+          }
+        }
+      }
+    },
   },
   actions:{
         async getGroups({commit}){
             try {
                 commit('setLoad',true)
-                const response = await fetch('http://localhost:3000/groups/get', {
+                const response = await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/groups/get', {
                     method: 'GET',
                 });
                 let res = await response.json()
@@ -67,7 +114,7 @@ export default createStore({
           let res;
           try {
                 commit('setLoad',true)
-              const response = await fetch('http://localhost:3000/authors/get', {
+              const response = await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/authors/get', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(
@@ -84,7 +131,7 @@ export default createStore({
             let arr = [];
             if(res.authors){
               for(let el of res.authors){
-                const response = await fetch(`http://localhost:3000/authors/get/${el.AuthorId}`, {
+                const response = await fetch(`https://syncme-server-a6c96ce1c319.herokuapp.com/authors/get/${el.AuthorId}`, {
                   method: 'GET',
                 });
                 let result = await response.json()
@@ -101,7 +148,7 @@ export default createStore({
           try {
               commit('setLoad',true)
               let token = localStorage.getItem("loginToken");
-              const response = await fetch('http://localhost:3000/validate', {
+              const response = await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/validate', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ token: token })
@@ -118,12 +165,78 @@ export default createStore({
         },
         async getPosts({commit},payload){
           commit('setLoad',true)
-            const response = await fetch(`http://localhost:3000/authors/get/${payload}`, {
+            const response = await fetch(`https://syncme-server-a6c96ce1c319.herokuapp.com/authors/get/${payload}`, {
               method: 'GET',
             });
             let result = await response.json()   
             commit('setPosts',result)
             commit('setLoad',false)
         },
+        async getMsgUsers({commit},payload){
+            let token = localStorage.getItem("loginToken");
+            const res = await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: token })
+            });
+            let f = await res.json();
+            commit('setUserInfo', f);
+
+            const response = await fetch(`https://syncme-server-a6c96ce1c319.herokuapp.com/messages/chats/${payload}`, {
+              method: 'GET',
+            });
+            let result = await response.json()   
+            commit('setMsgUsers',result)
+        },
+        async getChat({commit},payload){
+          const response = await fetch(`https://syncme-server-a6c96ce1c319.herokuapp.com/messages/get`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              disscusser_id:payload.disscusser_id,
+              current_user_id:payload.current_user_id,
+             })
+          });
+          let result = await response.json()   
+          commit('setChat',result)
+      },
+      async sendMsg({commit},payload){
+        await fetch(`https://syncme-server-a6c96ce1c319.herokuapp.com/messages/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            message_text:payload.message_text,
+            sent_at:payload.sent_at,
+            user_from_id:+payload.user_from_id,
+            user_to_id:+payload.user_to_id,
+           })
+        });
+        commit("sendMsg",1)
+        const response = await fetch(`https://syncme-server-a6c96ce1c319.herokuapp.com/messages/get`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              disscusser_id:+payload.user_to_id,
+              current_user_id:+payload.user_from_id,
+             })
+          });
+          let result = await response.json()   
+          commit('setChat',result)
+    },
+    async addComment({commit},payload){
+      await fetch(`https://syncme-server-a6c96ce1c319.herokuapp.com/authors/addcomment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          post_id:+payload.post_id,
+          user_id:+payload.user_id,
+          text:payload.text,
+         })
+      });
+      commit("addComment",{
+        postId:+payload.post_id,
+        text:payload.text,
+      })
+  },
   }
 })

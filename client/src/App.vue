@@ -17,6 +17,9 @@ export default {
     Header,
     Footer,
   },
+  created() {
+    this.$store.dispatch('getUserInfo')
+  },
   data(){
         return{
             isLogged:localStorage.getItem('loginToken'),

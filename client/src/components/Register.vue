@@ -101,7 +101,7 @@ export default {
       }
       try {
         this.load = true;
-        const response = await fetch('http://localhost:3000/auth/register', {
+        const response = await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(
