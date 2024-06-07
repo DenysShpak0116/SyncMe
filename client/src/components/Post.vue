@@ -11,8 +11,8 @@
             </div>
             <div class = "post-head-right-block">
               <div class="post-head-emotions">
-                <img src="../assets/smile.png" alt="smile">
-                <p>75%</p>
+                <p>{{ info.emotionalAnalysis.emotionalState }} %</p>
+                <p>{{ info.emotionalAnalysis.emotionalIcon }}</p>
               </div>
               <p class="post-head-date">
                 {{ info?.date?.slice(0,10) }}
@@ -47,7 +47,7 @@
             </div>
             <div class="post-comment">
               <input type="text" v-model="comment" placeholder="Write a comment...">
-              <div class="post-comment-send">
+              <div class="post-comment-send" @click = "addComment(info?.postId)">
                 <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                 <rect width="26" height="26" fill="url(#pattern0_312_1104)"/>
                 <defs>
@@ -72,7 +72,7 @@
             </div>
           </div>
           <div class="post-comments">
-            <div class="post-comment-block">
+            <div :class="comentStyle" v-for="comment in displayedComments" :key="comment.CommentId">
               <div class="post-comment-img-block">
                 <div class="post-comment-img">
                   <img src="../assets/logouser.jpg" alt="Logo">
@@ -81,15 +81,15 @@
               <div class="post-comment-main">
                 <div class="post-comment-head">
                   <p class="post-comment-name">
-                    Jenya
+                    {{comment.user_name}}
                   </p>
                   <p class="post-comment-date">
-                    01.05.2024
+                    {{ comment.date.slice(0,10) }}
                   </p>
                 </div>
                 <div class="post-comment-text">
-                  <p>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                  <p class="commentText">
+                    {{comment.text}}
                   </p>
                 </div>
                 <div class="post-comment-functions">
@@ -98,7 +98,7 @@
                     <rect x="20" y="50" width="50" height="10" rx="5" transform="rotate(-90 20 50)" fill="#5E3B76"/>
                     <rect y="20" width="50" height="10" rx="5" fill="#5E3B76"/>
                     </svg>
-                    <p class="comment-likes">123</p>
+                    <p class="comment-likes">0</p>
                   </div>
                   <p class="post-comment-reply">
                     Reply
@@ -113,53 +113,11 @@
                 </svg>
               </div>
             </div>
-            <div :class="comentStyle">
-              <div class="post-comment-img-block">
-                <div class="post-comment-img">
-                  <img src="../assets/logouser.jpg" alt="Logo">
-                </div>
-              </div>
-              <div class="post-comment-main">
-                <div class="post-comment-head">
-                  <p class="post-comment-name">
-                    Jenya
-                  </p>
-                  <p class="post-comment-date">
-                    01.05.2024
-                  </p>
-                </div>
-                <div class="post-comment-text">
-                  <p>
-                    Nam dolorem esse necessitatibus natus repellendus, sunt provident sequi modi? Ipsa eum facere, accusantium, aliquid voluptatibus rerum at sequi explicabo laborum mollitia repudiandae, laudantium hic beatae delectus nisi eaque. Dicta nesciunt voluptate ipsam commodi? Animi, molestiae. Totam, neque. Pariatur libero nulla natus!
-                  </p>
-                </div>
-                <div class="post-comment-functions">
-                  <div class="post-comment-like">
-                    <svg width="25" height="25" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="20" y="50" width="50" height="10" rx="5" transform="rotate(-90 20 50)" fill="#5E3B76"/>
-                    <rect y="20" width="50" height="10" rx="5" fill="#5E3B76"/>
-                    </svg>
-                    <p class="comment-likes">123</p>
-                  </div>
-                  <p class="post-comment-reply">
-                    Reply
-                  </p>
-                </div>
-              </div>
-              <div class="post-comment-more">
-                <svg width="5" height="20" viewBox="0 0 8 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 4C8 6.20914 6.20914 8 4 8C1.79086 8 0 6.20914 0 4C0 1.79086 1.79086 0 4 0C6.20914 0 8 1.79086 8 4Z" fill="#744E8E"/>
-                <path d="M8 17C8 19.2091 6.20914 21 4 21C1.79086 21 0 19.2091 0 17C0 14.7909 1.79086 13 4 13C6.20914 13 8 14.7909 8 17Z" fill="#744E8E"/>
-                <path d="M8 30C8 32.2091 6.20914 34 4 34C1.79086 34 0 32.2091 0 30C0 27.7909 1.79086 26 4 26C6.20914 26 8 27.7909 8 30Z" fill="#744E8E"/>
-                </svg>
-              </div>
-            </div>
-            <button class="see-more" @click = "more">
+            <button :class="btnStyle" @click = "more">
               See more ▽
             </button>
           </div>
     </div>
-    {{ console.log(info) }}
   </template>
 
 <script>
@@ -168,7 +126,8 @@ export default {
   data(){
         return{
           comment:"",
-          comentStyle:['post-comment-block','notVisible']
+          comentStyle:['post-comment-block'],
+          initialCommentsToShow: 1
         }
   },
   props: {
@@ -181,8 +140,10 @@ export default {
   },
   methods:{
     more(e){
-      e.target.style.display = 'none'
-      this.comentStyle = ['post-comment-block']
+      this.initialCommentsToShow += 3
+      if(this.initialCommentsToShow >= this.info.comments.length){
+        e.target.style.display = 'none'
+      }
     },
     getImg(arr){
       if(arr == null){
@@ -190,8 +151,34 @@ export default {
       }else{
         return arr[0].url;
       }
+    },
+    addComment(pId){
+      this.$store.dispatch('addComment',{
+        post_id:+pId,
+        user_id:+this.uInfo.userId,
+        text:this.comment,
+      })
+      this.comment = ""
+      this.initialCommentsToShow += 1
     }
   },
+  computed:{
+    displayedComments() {
+      let tempArr = [...this.info.comments]
+      return tempArr.reverse().slice(0, this.initialCommentsToShow);
+    },
+    uInfo(){
+      return this.$store.getters?.getUserInfo1?.user
+    },
+    btnStyle(){
+      console.log(this.info.comments.length)
+      if(this.info.comments.length == 0){
+        return ['nonev','see-more']
+      }else{
+        return ['see-more']
+      }
+    }
+  }
     
 }
 </script>

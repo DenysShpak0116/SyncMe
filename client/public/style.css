@@ -853,3 +853,9 @@ input{
     margin: 15px 0;
     padding: 0 30px;
 }
+.commentText{
+    word-wrap: break-word;
+}
+.nonev{
+    display: none;
+}

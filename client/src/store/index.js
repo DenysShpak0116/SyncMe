@@ -66,6 +66,35 @@ export default createStore({
     sendMsg(state,payload){
       state.msg = payload
     },
+    addComment(state,payload){
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      if(Array.isArray(state.posts)){
+        for(let o of state.posts){
+          for(let post of o.posts){
+            if(post.postId == payload.postId){
+              post.comments.push({
+                date:`${year}-${month}-${day}`,
+                text:payload.text,
+                user_name:state.name,
+              })
+            }
+          }
+        }
+      }else{
+        for(let post of state.posts.posts){
+          if(post.postId == payload.postId){
+            post.comments.push({
+              date:`${year}-${month}-${day}`,
+              text:payload.text,
+              user_name:state.name,
+            })
+          }
+        }
+      }
+    },
   },
   actions:{
         async getGroups({commit}){
@@ -194,5 +223,20 @@ export default createStore({
           let result = await response.json()   
           commit('setChat',result)
     },
+    async addComment({commit},payload){
+      await fetch(`https://syncme-server-a6c96ce1c319.herokuapp.com/authors/addcomment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          post_id:+payload.post_id,
+          user_id:+payload.user_id,
+          text:payload.text,
+         })
+      });
+      commit("addComment",{
+        postId:+payload.post_id,
+        text:payload.text,
+      })
+  },
   }
 })

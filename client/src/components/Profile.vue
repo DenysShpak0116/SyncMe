@@ -34,7 +34,7 @@ components: {
 },
 created() {
   this.$store.dispatch('getUserInfo')
-  this.$store.dispatch('getPosts',9)
+  this.$store.dispatch('getPosts',24)
 },
 data(){
       return{

@@ -26,7 +26,7 @@ export default {
         }
   },
   created() {
-    this.$store.dispatch('getPosts',9)
+    this.$store.dispatch('getPosts',24)
   },
   methods:{
     async validateToken() {
