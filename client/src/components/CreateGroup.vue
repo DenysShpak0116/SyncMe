@@ -49,7 +49,8 @@ export default {
                 name: this.name, 
                 description: this.description,
                 group_image: this.logo, 
-                group_background_image: this.image, 
+                group_background_image: this.image,
+                user_id: +localStorage.getItem('id')
             }
         )
         });
