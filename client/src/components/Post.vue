@@ -180,15 +180,15 @@ export default {
       return this.$store.getters?.getUserInfo1?.user
     },
     btnStyle(){
-      if(this.info.comments == null){
-        return ['nonev','see-more']
-      }else{ 
         if(this.info.comments.length == 0){
           return ['nonev','see-more']
         }else{
-          return ['see-more']
+          if(this.initialCommentsToShow<this.info.comments.length){
+            return ['see-more']
+          }else{
+            return ['nonev','see-more']
+          }
         }
-      }
       
     }
   }
