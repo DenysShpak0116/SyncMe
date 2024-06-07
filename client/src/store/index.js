@@ -130,14 +130,16 @@ export default createStore({
           let res;
           try {
                 commit('setLoad',true)
-              const response = await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/authors/get', {
+                const response = await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/authors/get', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 
+                  'Content-Type': 'application/json'
+                  },
                   body: JSON.stringify(
-                    { 
-                      group_id: +payload,
-                    })
-              });
+                  { 
+                  group_id: +payload,
+                  })
+                });
               res = await response.json()
               commit('setAuthors',res)
           } catch (error) {
@@ -146,13 +148,14 @@ export default createStore({
           try {
             let arr = [];
             if(res.authors){
-              for(let el of res.authors){
+                for(let el of res.authors){
                 const response = await fetch(`https://syncme-server-a6c96ce1c319.herokuapp.com/authors/get/${el.AuthorId}`, {
                   method: 'GET',
+
                 });
                 let result = await response.json()
                 arr.push(result)
-              }
+                }
             }
             commit('setPosts',arr)
             commit('setLoad',false)
