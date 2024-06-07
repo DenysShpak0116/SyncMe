@@ -8,6 +8,7 @@ import Groups from '../components/Groups.vue'
 import Profile from '../components/Profile.vue'
 import Group from '../components/Group.vue'
 import CreateGroup from '../components/CreateGroup.vue'
+import Notifications from '../components/Notifications.vue'
 
 const router = createRouter({
     history:createWebHashHistory(),
@@ -51,6 +52,11 @@ const router = createRouter({
             path: '/createGroup',
             name: 'createGroup',
             component: CreateGroup
+        },
+        {
+            path: '/notifications',
+            name: 'notifications',
+            component: Notifications
         },
     ]
 })
