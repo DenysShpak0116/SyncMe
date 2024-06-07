@@ -20,7 +20,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(
 		cors.New(cors.Options{
-			AllowedOrigins:         []string{"http://localhost:8080"},
+			AllowedOrigins:         []string{"https://syncme-client-f465c8129900.herokuapp.com"},
 			AllowOriginRequestFunc: func(r *http.Request, origin string) bool { return true },
 			AllowedMethods:         []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 			AllowedHeaders:         []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
@@ -47,7 +47,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 func withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
+		w.Header().Set("Access-Control-Allow-Origin", "https://syncme-client-f465c8129900.herokuapp.com")
 		next.ServeHTTP(w, r)
 	})
 }
@@ -63,7 +63,7 @@ func (s *Server) HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, _ = w.Write(jsonResp)
 
-	http.Redirect(w, r, "http://localhost:8080", http.StatusSeeOther)
+	http.Redirect(w, r, "https://syncme-client-f465c8129900.herokuapp.com", http.StatusSeeOther)
 }
 
 func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {

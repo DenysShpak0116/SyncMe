@@ -68,7 +68,7 @@ func GetAuthCallbackFuntion(w http.ResponseWriter, r *http.Request) {
 			Expires:  time.Now().Add(time.Hour * 24 * 30),
 			HttpOnly: false,
 			Path:     "/",
-			Domain:   "localhost",
+			Domain:   "syncme-client-f465c8129900.herokuapp",
 			Secure:   false,
 		})
 		w.Header().Set("Content-Type", "application/json")
@@ -125,7 +125,7 @@ func GetAuthCallbackFuntion(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(time.Hour * 24 * 30),
 		HttpOnly: false,
 		Path:     "/",
-		Domain:   "localhost",
+		Domain:   "syncme-client-f465c8129900.herokuapp",
 		Secure:   false,
 	})
 	w.Header().Set("Content-Type", "application/json")
@@ -140,7 +140,7 @@ func GetAuthCallbackFuntion(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(user)
 
-	http.Redirect(w, r, "http://localhost:8080/#/", http.StatusSeeOther)
+	http.Redirect(w, r, "https://syncme-client-f465c8129900.herokuapp.com/#/", http.StatusSeeOther)
 }
 
 func GetAuthFunction(res http.ResponseWriter, req *http.Request) {
@@ -148,7 +148,7 @@ func GetAuthFunction(res http.ResponseWriter, req *http.Request) {
 	req = req.WithContext(context.WithValue(req.Context(), "provider", provider))
 	if gothUser, err := gothic.CompleteUserAuth(res, req); err == nil {
 		fmt.Println(gothUser)
-		http.Redirect(res, req, "http://localhost:8080/#/", http.StatusSeeOther)
+		http.Redirect(res, req, "https://syncme-client-f465c8129900.herokuapp.com/#/", http.StatusSeeOther)
 	} else {
 		gothic.BeginAuthHandler(res, req)
 	}
@@ -177,7 +177,7 @@ func LogoutFunction(res http.ResponseWriter, req *http.Request) {
 		MaxAge:   -1,              // MaxAge<0 means delete cookie now
 		HttpOnly: false,
 		Path:     "/",
-		Domain:   "localhost",
+		Domain:   "syncme-client-f465c8129900.herokuapp",
 		Secure:   false,
 	}
 	http.SetCookie(res, &cookie)
@@ -192,7 +192,7 @@ func LogoutFunction(res http.ResponseWriter, req *http.Request) {
 	}
 
 	// Redirect to home page after logout
-	http.Redirect(res, req, "http://localhost:8080/#/", http.StatusSeeOther)
+	http.Redirect(res, req, "https://syncme-client-f465c8129900.herokuapp.com/#/", http.StatusSeeOther)
 	fmt.Println("Redirected to home page")
 }
 
@@ -299,7 +299,7 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(time.Hour * 24 * 30),
 		HttpOnly: false,
 		Path:     "/",
-		Domain:   "localhost",
+		Domain:   "syncme-client-f465c8129900.herokuapp",
 		Secure:   false,
 	})
 	w.Header().Set("Content-Type", "application/json")
