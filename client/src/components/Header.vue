@@ -94,7 +94,7 @@ export default {
                     </router-link>
                     <router-link
                         v-if="this.logged"
-                        :to="{name:'main'}">
+                        :to="{name:'notifications'}">
                         <div class="header-login header-login1">
                             <svg  class="header-login-svg" viewBox="0 0 56 55" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                             <rect x="0.120117" width="55" height="55" fill="url(#pattern0_305_692)"/>

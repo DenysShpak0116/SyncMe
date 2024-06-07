@@ -36,7 +36,7 @@ export default createStore({
     },
     getChat1(state){
       return state.chat
-    },
+    }
   },
   mutations: {
     setGroups(state,payload){
