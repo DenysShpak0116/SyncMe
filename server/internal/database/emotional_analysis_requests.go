@@ -1,5 +1,5 @@
 package database
-
+ 
 import (
 	"context"
 	"server/dto"
@@ -81,10 +81,11 @@ func (s *service) GetAuthorEmotionalAnalysis(authorId int) (*dto.EmotionalAnalys
 }
 
 func (s *service) GetGroupEmotionalAnalysis(groupId int) (*dto.EmotionalAnalysis, error) {
-	query := `SELECT AVG(emotionalstate) FROM emotionalanalysis 
+	query := `SELECT IFNULL(AVG(emotionalstate), 0) FROM emotionalanalysis 
 			  INNER JOIN post ON emotionalanalysis.emotionalanalysisid = post.emotionalanalysisid 
 			  INNER JOIN author ON post.authorid = author.authorid
 			  WHERE author.groupid = ?`
+
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
