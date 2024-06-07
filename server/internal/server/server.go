@@ -34,7 +34,7 @@ func NewServer() *http.Server {
 
 	// Создаем обработчик CORS с нужными заголовками
 	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"https://syncme-client-f465c8129900.herokuapp.com"},
+		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},

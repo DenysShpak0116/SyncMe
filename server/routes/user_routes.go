@@ -9,4 +9,5 @@ func RegisterUserRoutes(r chi.Router) {
 	r.Get("/allusers", controllers.GetAllUsersFunc)
 	r.Post("/block", controllers.BanUserFunc)
 	r.Post("/unblock", controllers.UnblockUserFunc)
+	r.Post("/get/{username}", controllers.GetUserByUserName)
 }

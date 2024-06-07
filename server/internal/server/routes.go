@@ -20,7 +20,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(
 		cors.New(cors.Options{
-			AllowedOrigins:         []string{"https://syncme-client-f465c8129900.herokuapp.com"},
+			AllowedOrigins:         []string{"*"},
 			AllowOriginRequestFunc: func(r *http.Request, origin string) bool { return true },
 			AllowedMethods:         []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 			AllowedHeaders:         []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
@@ -47,7 +47,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 func withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "https://syncme-client-f465c8129900.herokuapp.com")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		next.ServeHTTP(w, r)
 	})
 }
