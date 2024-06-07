@@ -49,7 +49,7 @@ func (s *service) GetEmotionalAnalysisById(id int) (*models.EmotionalAnalysis, e
 }
 
 func (s *service) GetAuthorEmotionalAnalysis(authorId int) (*dto.EmotionalAnalysis, error) {
-	query := `SELECT AVG(emotionalstate) FROM emotionalanalysis 
+	query := `SELECT IFNULL(AVG(emotionalstate), 0) FROM emotionalanalysis 
 			  INNER JOIN post ON emotionalanalysis.emotionalanalysisid = post.emotionalanalysisid 
 			  WHERE post.authorid = ?`
 

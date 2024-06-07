@@ -53,7 +53,7 @@ type Service interface {
 
 	AddComment(comment models.Comment) (int, error)
 	GetPostComments(postId int) ([]models.Comment, error)
-	
+
 	GetUserChats(userId int) ([]dto.Chat, error)
 
 	AddEmotionalAnalysis(emotionalAnalysis models.EmotionalAnalysis) (int, error)
@@ -178,7 +178,7 @@ func (s *service) Close() error {
 }
 
 func (s *service) AddUser(user models.User) error {
-	query := `INSERT INTO user (username, password, email, firstname, lastname, sex, country, role, logo, bgimage) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO user (username, password, email, firstname, lastname, sex, country, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -193,8 +193,6 @@ func (s *service) AddUser(user models.User) error {
 		user.Sex,
 		user.Country,
 		user.Role,
-		user.Logo,
-		user.BgImage,
 	)
 	if err != nil {
 		return fmt.Errorf("could not insert user: %v", err)
