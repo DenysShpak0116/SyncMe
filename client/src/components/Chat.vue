@@ -93,7 +93,7 @@ import { mapState } from 'vuex';
 export default {
   name: 'ChatC',
   created() {
-    this.$store.dispatch('getMsgUsers',this.uInfo.userId)
+    this.$store.dispatch('getMsgUsers',+localStorage.getItem('id'))
   },
   data(){
         return{
@@ -123,14 +123,14 @@ export default {
         localStorage.setItem("discusser",e)
         this.$store.dispatch('getChat',{
             disscusser_id:e,
-            current_user_id:this.uInfo.userId,
+            current_user_id:+localStorage.getItem('id'),
         }) 
         this.name = a
         this.timeId = setInterval(() => {
             console.log("sadsadasdas")
             this.$store.dispatch('getChat',{
             disscusser_id:e,
-            current_user_id:this.uInfo.userId,
+            current_user_id:+localStorage.getItem('id'),
             }) 
             setTimeout(() =>{this.scrollToElement()},4000)
         }, 5000);
@@ -140,7 +140,7 @@ export default {
             this.$store.dispatch('sendMsg',{
                 message_text:this.message,
                 sent_at:new Date(),
-                user_from_id:this.uInfo.userId,
+                user_from_id:+localStorage.getItem('id'),
                 user_to_id:localStorage.getItem("discusser")
             }) 
             this.message = ""

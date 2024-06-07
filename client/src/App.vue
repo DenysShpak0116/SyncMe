@@ -19,7 +19,8 @@ export default {
   },
   created() {
     this.$store.dispatch('getUserInfo')
-    localStorage.setItem('id',this.$store.getters?.getUserInfo1?.user.userId)
+    setTimeout(() =>{localStorage.setItem('id',this.$store.getters?.getUserInfo1?.user?.userId)},4000)
+    
   },
   data(){
         return{

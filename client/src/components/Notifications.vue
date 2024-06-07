@@ -14,7 +14,7 @@
 export default {
   name: 'NotificationsC',
   async created(){
-    const response = await fetch(`https://syncme-server-a6c96ce1c319.herokuapp.com/notifications/${this.uInfo}`, {
+    const response = await fetch(`https://syncme-server-a6c96ce1c319.herokuapp.com/notifications/${localStorage.getItem('id')}`, {
       method: 'GET',
     });
     let result = await response.json() 
