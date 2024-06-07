@@ -41,6 +41,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	routes.RegisterGroupRoutes(r)
 	routes.RegisterAuthRoutes(r)
 	routes.RegisterUserRoutes(r)
+	routes.RegisterMailRoutes(r)
 	return r
 }
 
