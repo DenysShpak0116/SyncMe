@@ -55,6 +55,22 @@ export default createStore({
       state.name = payload
     },
     setPosts(state,payload){
+      if(Array.isArray(payload)){
+        for(let el of payload){
+          for(let post of el.posts){
+            if(post.comments == null){
+              post.comments = []
+            }
+          }
+        }
+      }else{
+        for(let post of payload.posts){
+          if(post.comments == null){
+            post.comments = []
+          }
+        }
+      }
+      
       state.posts = payload
     },
     setMsgUsers(state,payload){

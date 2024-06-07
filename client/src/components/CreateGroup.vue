@@ -9,6 +9,7 @@
                 <input type="text" class="login-input" v-model="description" placeholder="Group description">
                 <input type="text" class="login-input" v-model="logo" placeholder="Group logo">
                 <input type="text" class="login-input" v-model="image" placeholder="Background image">
+                <input type="text" class="login-input" v-model="author" placeholder="Author">
                 <div class="login-btn">
                     <button class="login-btn-button" @click="create">
                         Create Group
@@ -29,7 +30,8 @@ export default {
            name:"",
            description:"",
            logo:"",
-           image:""
+           image:"",
+           author:""
         }
   },
   methods:{
@@ -37,8 +39,10 @@ export default {
         console.log(a)
     },
     async create(){
+      let resArr = this.author.split(',')
+      console.log(resArr)
       try {
-        await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/groups/add', {
+        const res = await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/groups/add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(
@@ -50,6 +54,23 @@ export default {
             }
         )
         });
+        let result = await res.json()
+        console.log(result)
+        const res1 = await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/groups/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            { 
+                name: this.name, 
+                description: this.description,
+                group_image: this.logo, 
+                group_background_image: this.image, 
+            }
+        )
+        });
+        
+        let result1 = await res1.json()
+        console.log(result1)
         this.$router.push({name:'groups'})
       } catch (error) {
         // Handle error

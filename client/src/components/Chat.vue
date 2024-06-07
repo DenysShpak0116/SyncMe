@@ -22,9 +22,6 @@
                                 <p class="chat-user-name">
                                     {{ el.UserName }}
                                 </p>
-                                <p class="chat-user-text">
-                                    You: Here is the last message
-                                </p>
                             </div>
                         </div>
                     </div>
@@ -146,7 +143,7 @@ export default {
                 user_to_id:localStorage.getItem("discusser")
             }) 
             this.message = ""
-            setTimeout(() =>{this.scrollToElement()},1500)
+            setTimeout(() =>{this.scrollToElement()},2000)
         }
     },
     getClass(e){
