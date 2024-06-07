@@ -140,9 +140,13 @@ export default {
   },
   methods:{
     more(e){
-      this.initialCommentsToShow += 3
-      if(this.initialCommentsToShow >= this.info.comments.length){
-        e.target.style.display = 'none'
+      if(this.info.comments == null){
+        console.log(null)
+      }else{ 
+        this.initialCommentsToShow += 3
+        if(this.initialCommentsToShow >= this.info.comments.length){
+          e.target.style.display = 'none'
+        }
       }
     },
     getImg(arr){
@@ -164,19 +168,28 @@ export default {
   },
   computed:{
     displayedComments() {
-      let tempArr = [...this.info.comments]
-      return tempArr.reverse().slice(0, this.initialCommentsToShow);
+      if(this.info.comments == null){
+        let tempArr = []
+        return tempArr.reverse().slice(0, this.initialCommentsToShow);
+      }else{ 
+        let tempArr = [...this.info.comments]
+        return tempArr.reverse().slice(0, this.initialCommentsToShow);
+      }
     },
     uInfo(){
       return this.$store.getters?.getUserInfo1?.user
     },
     btnStyle(){
-      console.log(this.info.comments.length)
-      if(this.info.comments.length == 0){
+      if(this.info.comments == null){
         return ['nonev','see-more']
-      }else{
-        return ['see-more']
+      }else{ 
+        if(this.info.comments.length == 0){
+          return ['nonev','see-more']
+        }else{
+          return ['see-more']
+        }
       }
+      
     }
   }
     
