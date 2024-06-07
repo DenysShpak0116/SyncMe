@@ -55,7 +55,6 @@ export default {
         )
         });
         let result = await res.json()
-        console.log(result)
         for(let link of resArr){
             const res1 = await fetch('https://syncme-server-a6c96ce1c319.herokuapp.com/authors/add', {
             method: 'POST',
@@ -63,7 +62,7 @@ export default {
             body: JSON.stringify(
               { 
                   author_link: link, 
-                  group_id: 1,
+                  group_id: result.group_id,
               }
           )
           });
