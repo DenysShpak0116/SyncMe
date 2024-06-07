@@ -1,12 +1,9 @@
 package controllers
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
-	"os"
 	"regexp"
 	"server/dto"
 	"server/internal/database"
@@ -19,7 +16,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	twitterscraper "github.com/n0madic/twitter-scraper"
 )
 
 func AddAuthorFunc(w http.ResponseWriter, r *http.Request) {
@@ -56,6 +52,7 @@ func AddAuthorFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cross-Origin-Resource-Policy", "cross-origin")
 	w.WriteHeader(http.StatusCreated)
 	response := map[string]interface{}{
 		"message": "Author added successfully",
@@ -71,27 +68,40 @@ func addXAuthor(link string, groupId int) (models.Author, error) {
 	}
 
 	userName := strings.Split(link, "/")[3]
+	client := &http.Client{Timeout: 10 * time.Second}
 
-	twitterUsername := os.Getenv("TWITTER_USERNAME")
-	twitterPassword := os.Getenv("TWITTER_PASSWORD")
-	scraper := twitterscraper.New()
-	err := scraper.Login(twitterUsername, twitterPassword)
-	defer scraper.Logout()
+	// Fetch user details
+	userDetailsURL := "https://twitter154.p.rapidapi.com/user/details?username=" + userName
+	req, err := http.NewRequest("GET", userDetailsURL, nil)
 	if err != nil {
 		return models.Author{}, err
 	}
+	req.Header.Add("x-rapidapi-key", "4780938895msh64888601af59894p1ad53ejsn1a0ae27d979f")
+	req.Header.Add("x-rapidapi-host", "twitter154.p.rapidapi.com")
 
-	profile, err := scraper.GetProfile(userName)
+	res, err := client.Do(req)
 	if err != nil {
+		return models.Author{}, err
+	}
+	defer res.Body.Close()
+
+	var body struct {
+		Name                  string `json:"name"`
+		UserName              string `json:"username"`
+		AuthorImage           string `json:"profile_pic_url"`
+		AuthorBackgroundImage string `json:"profile_banner_url"`
+	}
+
+	if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
 		return models.Author{}, err
 	}
 
 	author := models.Author{
-		Name:                  profile.Name,
-		Username:              profile.Username,
+		Name:                  body.Name,
+		Username:              body.UserName,
 		SocialMedia:           "X",
-		AuthorImage:           strings.ReplaceAll(profile.Avatar, "normal", "400x400"),
-		AuthorBackgroundImage: profile.Banner,
+		AuthorImage:           strings.ReplaceAll(body.AuthorImage, "normal", "400x400"),
+		AuthorBackgroundImage: body.AuthorBackgroundImage,
 		GroupId:               groupId,
 	}
 
@@ -101,40 +111,84 @@ func addXAuthor(link string, groupId int) (models.Author, error) {
 		return models.Author{}, err
 	}
 
-	for tweet := range scraper.GetTweets(context.Background(), userName, 50) {
-		if tweet.Error != nil {
-			log.Println(tweet.Error)
+	//add time sleep here
+	time.Sleep(3 * time.Second)
+
+	// Fetch user tweets
+	tweetsURL := "https://twitter154.p.rapidapi.com/user/tweets?username=" + userName + "&limit=10&include_replies=false"
+	req, err = http.NewRequest("GET", tweetsURL, nil)
+	if err != nil {
+		return models.Author{}, err
+	}
+	req.Header.Add("x-rapidapi-key", "4780938895msh64888601af59894p1ad53ejsn1a0ae27d979f")
+	req.Header.Add("x-rapidapi-host", "twitter154.p.rapidapi.com")
+
+	res, err = client.Do(req)
+	if err != nil {
+		return models.Author{}, err
+	}
+	fmt.Printf("Response: %v\n", res)
+	defer res.Body.Close()
+
+	var resultTwits struct {
+		Results []struct {
+			Text         string   `json:"text"`
+			CreationDate string   `json:"creation_date"`
+			Media        []string `json:"media_url"`
+			Video        []struct {
+				URL string `json:"url"`
+			} `json:"video_url"`
+		} `json:"results"`
+	}
+
+	if err := json.NewDecoder(res.Body).Decode(&resultTwits); err != nil {
+		return models.Author{}, fmt.Errorf("error decoding JSON: %v", err)
+	}
+
+	fmt.Printf("Decoded tweets: %+v\n", resultTwits)
+
+	iterator := 0
+	for _, tweet := range resultTwits.Results {
+		if iterator >= 5 {
+			break
 		}
+		tweetTime, err := time.Parse(time.RubyDate, tweet.CreationDate)
+		if err != nil {
+			return models.Author{}, fmt.Errorf("error parsing date: %v", err)
+		}
+
+		fmt.Printf("Processing tweet: %s\n", tweet.Text)
+
+		emotionalAnalysisId, err := services.CreateEmotionalAnalysis(tweet.Text)
+		if err != nil {
+			return models.Author{}, fmt.Errorf("error creating emotional analysis: %v", err)
+		}
+
 		postId, err := dbService.AddPost(models.Post{
 			AuthorId:            authorId,
 			TextContent:         tweet.Text,
-			Date:                tweet.TimeParsed,
+			Date:                tweetTime,
 			CountOfLikes:        0,
-			EmotionalAnalysisId: 1,
+			EmotionalAnalysisId: emotionalAnalysisId,
 		})
 		if err != nil {
-			return models.Author{}, err
+			return models.Author{}, fmt.Errorf("error adding post: %v", err)
 		}
 
-		for _, photo := range tweet.Photos {
-			_, err = dbService.AddPhoto(models.XPhoto{
-				URL:    photo.URL,
-				PostId: postId,
-			})
-			if err != nil {
-				return models.Author{}, err
+		for _, photo := range tweet.Media {
+			fmt.Printf("Processing photo: %s\n", photo)
+			if _, err := dbService.AddPhoto(models.XPhoto{URL: photo, PostId: postId}); err != nil {
+				return models.Author{}, fmt.Errorf("error adding photo: %v", err)
 			}
 		}
 
-		for _, video := range tweet.Videos {
-			_, err = dbService.AddVideo(models.XVideo{
-				URL:    video.URL,
-				PostId: postId,
-			})
-			if err != nil {
-				return models.Author{}, err
+		for _, video := range tweet.Video {
+			fmt.Printf("Processing video: %s\n", video.URL)
+			if _, err := dbService.AddVideo(models.XVideo{URL: video.URL, PostId: postId}); err != nil {
+				return models.Author{}, fmt.Errorf("error adding video: %v", err)
 			}
 		}
+		iterator++
 	}
 
 	author.AuthorId = authorId
@@ -143,7 +197,7 @@ func addXAuthor(link string, groupId int) (models.Author, error) {
 }
 
 func addInstaAuthor(link string, groupId int) (models.Author, error) {
-	regularExpression := regexp.MustCompile(`^https://www.instagram.com/[a-zA-Z0-9_]+$`)
+	regularExpression := regexp.MustCompile(`^https://www.instagram.com/[a-zA-Z0-9_.]+$`)
 	if !regularExpression.MatchString(link) {
 		return models.Author{}, fmt.Errorf("Invalid link")
 	}
@@ -228,7 +282,7 @@ func addInstaAuthor(link string, groupId int) (models.Author, error) {
 
 	iterator := 0
 	for _, post := range instPostsBody.Data.Items {
-		if iterator >= 10 {
+		if iterator >= 5 {
 			break
 		}
 		emotionalAnalysisId, err := services.CreateEmotionalAnalysis(post.Caption.Text)
@@ -318,6 +372,7 @@ func AddCommentFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cross-Origin-Resource-Policy", "cross-origin")
 	w.WriteHeader(http.StatusCreated)
 	response := map[string]interface{}{
 		"message":    "Comment added successfully",
@@ -394,6 +449,7 @@ func GetAuthorByIdFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cross-Origin-Resource-Policy", "cross-origin")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(authorDTO)
 }

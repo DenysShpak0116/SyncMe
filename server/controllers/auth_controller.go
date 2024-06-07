@@ -221,17 +221,6 @@ func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Cannot hash password: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	bgLink, err := utils.GetRandomPhoto()
-	if err != nil {
-		http.Error(w, "Cannot get random photo: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	logoLink, err := utils.GetRandomPhoto()
-	if err != nil {
-		http.Error(w, "Cannot get random photo: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
 	user := models.User{
 		Username:  body.Username,
 		Password:  hash,
@@ -241,8 +230,6 @@ func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 		Sex:       body.Sex,
 		Country:   body.Country,
 		Role:      "user",
-		Logo:      logoLink,
-		BgImage:   bgLink,
 	}
 	fmt.Println(user)
 
