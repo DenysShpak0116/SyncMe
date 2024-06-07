@@ -50,7 +50,7 @@ export default {
                 description: this.description,
                 group_image: this.logo, 
                 group_background_image: this.image,
-                user_id: localStorage.getItem('id')
+                user_id: +localStorage.getItem('id')
             }
         )
         });
