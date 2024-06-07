@@ -37,6 +37,28 @@ func AddMessageFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userFrom, err := dbService.GetUserById(body.UserFromId)
+	if err != nil {
+		http.Error(w, "Cannot get user: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	notification := models.Notification{
+		Text:      userFrom.Username+": "+body.MessageText,
+		Date:      body.SentAt,
+	}
+
+	notificationId, err := dbService.AddNotification(notification)
+	if err != nil {
+		http.Error(w, "Cannot add notification: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, err = dbService.AddUserNotification(body.UserToId, notificationId)
+	if err != nil {
+		http.Error(w, "Cannot add user notification: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	response := map[string]interface{}{
 		"message_id": messageId,
 	}

@@ -60,6 +60,10 @@ type Service interface {
 	GetEmotionalAnalysisById(id int) (*models.EmotionalAnalysis, error)
 	GetAuthorEmotionalAnalysis(authorId int) (*dto.EmotionalAnalysis, error)
 	GetGroupEmotionalAnalysis(groupId int) (*dto.EmotionalAnalysis, error)
+
+	AddNotification(notificationRequest models.Notification) (int, error)
+	AddUserNotification(userId int, notificationId int) (int, error)
+	GetUserNotifications(userId int) ([]models.Notification, error)
 }
 
 type service struct {

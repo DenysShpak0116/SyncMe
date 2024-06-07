@@ -35,10 +35,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Get("/health", s.healthHandler)
 	r.Get("/session", s.userSessionHandler)
 
-	routes.RegisterAuthRoutes(r)
-	routes.RegisterGroupRoutes(r)
-	routes.RegisterAuthorRoutes(r)
+	routes.RegisterNotificationRoutes(r)
 	routes.RegisterMessageRoutes(r)
+	routes.RegisterAuthorRoutes(r)
+	routes.RegisterGroupRoutes(r)
+	routes.RegisterAuthRoutes(r)
 	routes.RegisterUserRoutes(r)
 	return r
 }
